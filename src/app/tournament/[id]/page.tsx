@@ -1,0 +1,216 @@
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { ArrowLeft, CalendarPlus, Clock, DollarSign, Users, Layers } from 'lucide-react'
+import { Tournament, Series } from '@/types'
+
+interface TournamentWithSeries extends Omit<Tournament, 'series'> {
+  series: Series | null
+}
+
+export default async function TournamentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: tournament, error } = await supabase
+    .from('tournaments')
+    .select('*, series:series_id(*)')
+    .eq('id', id)
+    .single<TournamentWithSeries>()
+
+  if (error || !tournament) {
+    notFound()
+  }
+
+  const seriesName = tournament.series?.name || 'Unknown Series'
+  const seriesColor = getSeriesColor(seriesName)
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      {/* Back link */}
+      <Link
+        href="/browse"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="size-4" />
+        Browse
+      </Link>
+
+      {/* Series badge */}
+      <div>
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${seriesColor.bg} ${seriesColor.text}`}
+        >
+          {seriesColor.label} #{tournament.event_number}
+        </span>
+      </div>
+
+      {/* Event name */}
+      <h1 className="text-2xl md:text-3xl font-bold leading-tight">
+        {tournament.name}
+      </h1>
+
+      {/* Key info cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* Date */}
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-4 space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3" />
+              Date & Time
+            </p>
+            <p className="text-sm font-semibold">
+              {formatDate(tournament.date)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {tournament.day_of_week} at {formatTime(tournament.start_time)}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Buy-in */}
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-4 space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <DollarSign className="size-3" />
+              Buy-in
+            </p>
+            <p className="text-lg font-bold text-green-500">
+              {formatBuyIn(tournament.buy_in)}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Table Size */}
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-4 space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Users className="size-3" />
+              Table Size
+            </p>
+            <p className="text-sm font-semibold">
+              {tournament.table_size}-max
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Guarantee */}
+        {tournament.guaranteed_prize && tournament.guaranteed_prize > 0 && (
+          <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+            <CardContent className="p-4 space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Layers className="size-3" />
+                Guarantee
+              </p>
+              <p className="text-sm font-semibold text-green-500">
+                {formatBuyIn(tournament.guaranteed_prize)}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Game type, format, badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{tournament.game_type}</Badge>
+        <Badge variant="outline">{tournament.format}</Badge>
+        {tournament.table_size !== 9 && (
+          <Badge variant="outline">{tournament.table_size}-max</Badge>
+        )}
+      </div>
+
+      {/* Tournament Details */}
+      <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <CardContent className="p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-foreground">Tournament Details</h2>
+          <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
+            {tournament.starting_stack && (
+              <>
+                <span className="text-muted-foreground">Starting Stack</span>
+                <span className="font-medium">{tournament.starting_stack.toLocaleString()}</span>
+              </>
+            )}
+            {tournament.blind_levels_minutes && (
+              <>
+                <span className="text-muted-foreground">Blind Levels</span>
+                <span className="font-medium">{tournament.blind_levels_minutes} min</span>
+              </>
+            )}
+            {tournament.late_reg_levels && (
+              <>
+                <span className="text-muted-foreground">Late Reg Levels</span>
+                <span className="font-medium">{tournament.late_reg_levels} levels</span>
+              </>
+            )}
+            {tournament.late_reg_end_time && (
+              <>
+                <span className="text-muted-foreground">Late Reg Ends</span>
+                <span className="font-medium">{formatTime(tournament.late_reg_end_time)}</span>
+              </>
+            )}
+            {tournament.estimated_duration_hours && (
+              <>
+                <span className="text-muted-foreground">Est. Duration</span>
+                <span className="font-medium">{tournament.estimated_duration_hours} hours</span>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Flight info */}
+      {tournament.is_flight && tournament.flight_label && (
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-5 space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">Flight Information</h2>
+            <p className="text-sm text-muted-foreground">
+              This is <span className="font-medium text-foreground">Flight {tournament.flight_label}</span>
+              {tournament.parent_event_number && (
+                <> of Event #{tournament.parent_event_number}</>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Notes */}
+      {tournament.notes && (
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-5 space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">Notes</h2>
+            <p className="text-sm text-muted-foreground">{tournament.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Venue info */}
+      {tournament.series?.venue && (
+        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <CardContent className="p-5 space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">Venue</h2>
+            <p className="text-sm text-muted-foreground">{tournament.series.venue}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add to Schedule button */}
+      <div className="pt-2">
+        <Button disabled className="w-full md:w-auto gap-2" size="lg">
+          <CalendarPlus className="size-4" />
+          Add to Schedule
+        </Button>
+        <p className="text-xs text-muted-foreground mt-2">
+          Sign in to add tournaments to your schedule.
+        </p>
+      </div>
+    </div>
+  )
+}
