@@ -26,23 +26,18 @@ function LoginForm() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') === 'auth' ? 'Authentication failed. Please try again.' : null
+  )
   const [loading, setLoading] = useState(false)
 
   const next = searchParams.get('next') ?? '/'
-  const authError = searchParams.get('error')
 
   useEffect(() => {
     if (!userLoading && user) {
       router.replace(next)
     }
   }, [user, userLoading, router, next])
-
-  useEffect(() => {
-    if (authError === 'auth') {
-      setError('Authentication failed. Please try again.')
-    }
-  }, [authError])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

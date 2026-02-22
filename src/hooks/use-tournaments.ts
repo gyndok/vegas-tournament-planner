@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Tournament, TournamentFilters } from '@/types'
 
 export function useTournaments(filters: TournamentFilters) {
@@ -7,27 +7,54 @@ export function useTournaments(filters: TournamentFilters) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Stabilise array deps so the effect dependency list stays simple
+  const gameTypes = useMemo(() => JSON.stringify(filters.gameTypes), [filters.gameTypes])
+  const formats = useMemo(() => JSON.stringify(filters.formats), [filters.formats])
+  const tableSizes = useMemo(() => JSON.stringify(filters.tableSizes), [filters.tableSizes])
+
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
-    if (filters.dateTo) params.set('dateTo', filters.dateTo)
-    if (filters.buyInMin !== undefined) params.set('buyInMin', String(filters.buyInMin))
-    if (filters.buyInMax !== undefined) params.set('buyInMax', String(filters.buyInMax))
-    filters.gameTypes?.forEach(g => params.append('gameType', g))
-    filters.formats?.forEach(f => params.append('format', f))
-    filters.tableSizes?.forEach(t => params.append('tableSize', String(t)))
-    if (filters.sortBy) params.set('sortBy', filters.sortBy)
-    params.set('limit', '100')
+    const controller = new AbortController()
+
+    async function fetchTournaments() {
+      const params = new URLSearchParams()
+      if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+      if (filters.dateTo) params.set('dateTo', filters.dateTo)
+      if (filters.buyInMin !== undefined) params.set('buyInMin', String(filters.buyInMin))
+      if (filters.buyInMax !== undefined) params.set('buyInMax', String(filters.buyInMax))
+      filters.gameTypes?.forEach(g => params.append('gameType', g))
+      filters.formats?.forEach(f => params.append('format', f))
+      filters.tableSizes?.forEach(t => params.append('tableSize', String(t)))
+      if (filters.sortBy) params.set('sortBy', filters.sortBy)
+      params.set('limit', '100')
+
+      try {
+        const res = await fetch(`/api/tournaments?${params}`, {
+          signal: controller.signal,
+        })
+        if (!res.ok) throw new Error('Failed to load')
+        const data = await res.json()
+        if (!controller.signal.aborted) {
+          setTournaments(data)
+          setError(null)
+        }
+      } catch (e) {
+        if (!controller.signal.aborted) {
+          setError(String(e))
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    }
 
     setLoading(true)
-    fetch(`/api/tournaments?${params}`)
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to load'))
-      .then(data => { setTournaments(data); setError(null) })
-      .catch(e => setError(String(e)))
-      .finally(() => setLoading(false))
+    fetchTournaments()
+
+    return () => controller.abort()
   }, [filters.dateFrom, filters.dateTo, filters.buyInMin, filters.buyInMax,
-      JSON.stringify(filters.gameTypes), JSON.stringify(filters.formats),
-      JSON.stringify(filters.tableSizes), filters.sortBy])
+      filters.gameTypes, filters.formats, filters.tableSizes, filters.sortBy,
+      gameTypes, formats, tableSizes])
 
   return { tournaments, loading, error }
 }
