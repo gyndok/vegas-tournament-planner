@@ -117,6 +117,17 @@ function parseBlock(
     return null
   }
 
+  // Skip Day 2 / Restart / Final Table continuation events (no buy-in, not new tournaments)
+  const nameLower = eventName.toLowerCase()
+  if (
+    (nameLower.includes('day 2') || nameLower.includes('day2') ||
+     nameLower.includes('final table') ||
+     eventType === 'Restart') &&
+    !buyIn
+  ) {
+    return null
+  }
+
   return {
     raw_date: rawDate,
     raw_time: rawTime,
@@ -155,6 +166,17 @@ function parseBlockAlternate(
 
   if (!eventName && !buyIn) return null
 
+  // Skip Day 2 / Restart / Final Table continuation events
+  const nameLower = (eventName || '').toLowerCase()
+  if (
+    (nameLower.includes('day 2') || nameLower.includes('day2') ||
+     nameLower.includes('final table') ||
+     eventType === 'Restart') &&
+    !buyIn
+  ) {
+    return null
+  }
+
   return {
     raw_date: dateMatch[1].replace(/\s+/, ''),
     raw_time: rawTime,
@@ -183,8 +205,14 @@ function extractContentLines(blockText: string): string[] {
       if (line === '\\' || line === '\\\\') return false
       // Skip lines that are just URLs in parens
       if (/^\]\(https?:/.test(line)) return false
+      // Skip lines containing markdown link URL continuations (e.g., "Wednesday1:00pm](url)")
+      if (/\]\(https?:\/\//.test(line)) return false
       // Skip lines that are just brackets/parens
       if (/^[\[\]\(\)]+$/.test(line)) return false
+      // Skip "View Live Info" links from PokerAtlas
+      if (/^view live info$/i.test(line)) return false
+      // Skip scraped widget/iframe artifacts
+      if (/widget|iframe/i.test(line) && line.length < 30) return false
       return true
     })
 }
@@ -231,12 +259,24 @@ function identifyFields(lines: string[]): {
 
     // Check for detail list items (- chips, - levels, - guarantee)
     if (line.startsWith('- ')) {
-      details.push(line.substring(2).trim())
+      const detail = line.substring(2).trim()
+      // "Restart" in details marks a Day 2 / continuation event — not a real detail
+      if (/^restart$/i.test(detail)) {
+        // Tag as restart event type so pipeline can handle it
+        if (!eventType) eventType = 'Restart'
+        continue
+      }
+      details.push(detail)
       // Check for guarantee in details
       if (/\$[\d,]+\s*(?:k|m)?\s*(?:gtd|guaranteed)/i.test(line)) {
         const gMatch = line.match(/(\$[\d,]+\s*(?:k|m)?)\s*(?:gtd|guaranteed)/i)
         if (gMatch) guarantee = gMatch[1]
       }
+      continue
+    }
+
+    // Skip "Event #X" label lines (e.g., "Event #5", "Event #45")
+    if (/^event\s*#?\d+$/i.test(lower)) {
       continue
     }
 
@@ -247,11 +287,23 @@ function identifyFields(lines: string[]): {
       continue
     }
 
-    // Buy-in (line is primarily a dollar amount)
+    // Buy-in (line is purely a dollar amount, e.g. "$1,100")
     if (!foundBuyIn && /^\$[\d,]+$/.test(line.trim())) {
       buyIn = line.trim()
       foundBuyIn = true
       continue
+    }
+
+    // Combined event name + buy-in line (e.g., "$600 NLH $50K GTD", "$1,100 NLH Turbo $100K GTD")
+    // These lines start with a dollar amount followed by event description
+    if (!foundBuyIn && !eventName && /^\$[\d,]+\s+\S/.test(line.trim())) {
+      const lineBuyInMatch = line.trim().match(/^(\$[\d,]+)/)
+      if (lineBuyInMatch) {
+        buyIn = lineBuyInMatch[1]
+        foundBuyIn = true
+        eventName = line.trim()
+        continue
+      }
     }
 
     // Game type abbreviated (short line matching known abbreviations)
@@ -307,13 +359,41 @@ function identifyFields(lines: string[]): {
     }
   }
 
-  // If gameType is still a full name like "NL Holdem", that's fine — normalizer handles it
+  // --- Post-loop: extract buy-in from event name if not found on a dedicated line ---
+  // Handles formats like "$1,100 NLH Turbo $100K GTD" or "$600 NLH $50K GTD"
+  // or "$300 Milestone to $1,600 Seniors"
+  if (!buyIn && eventName) {
+    const nameBuyInMatch = eventName.match(/^\$[\d,]+/)
+    if (nameBuyInMatch) {
+      buyIn = nameBuyInMatch[0]
+      foundBuyIn = true
+    }
+  }
+
+  // --- Post-loop: extract game type from event name if not found ---
   if (!gameType && eventName) {
     // Try to detect game type from event name
-    if (/nlh|hold.?em/i.test(eventName)) gameType = 'NLH'
-    else if (/plo|omaha/i.test(eventName)) gameType = 'PLO'
-    else if (/stud/i.test(eventName)) gameType = 'Stud'
-    else if (/mixed|horse/i.test(eventName)) gameType = 'Mixed'
+    if (/\bnlh\b|hold.?em/i.test(eventName)) gameType = 'NLH'
+    else if (/\b5[- ]?card\s*plo\b/i.test(eventName)) gameType = 'PLO'
+    else if (/\bplo\s*8\b|\bomaha\s*8\b|\bomaha\s*hi.?lo\b/i.test(eventName)) gameType = 'PLO8'
+    else if (/\bplo\b|\bomaha\b/i.test(eventName)) gameType = 'PLO'
+    else if (/\btorse\b|\bhorse\b|\bheros\b/i.test(eventName)) gameType = 'Mixed'
+    else if (/\bstud\b/i.test(eventName)) gameType = 'Stud'
+    else if (/\brazz\b/i.test(eventName)) gameType = 'Razz'
+    else if (/\bmixed\b/i.test(eventName)) gameType = 'Mixed'
+    else if (/\bbig\s*o\b/i.test(eventName)) gameType = 'Big O'
+    else if (/\bbadugi\b/i.test(eventName)) gameType = 'Badugi'
+    else if (/\blimit\s+omaha\s*8\b/i.test(eventName)) gameType = 'PLO8'
+  }
+
+  // --- Post-loop: extract guarantee from event name if not found ---
+  if (!guarantee && eventName) {
+    // Match patterns like "$50K GTD", "$1.5M GTD", "$100K GTD", "$200K Gtd"
+    const nameGtdMatch = eventName.match(/\$[\d,.]+\s*(?:k|m|mm)\s*gtd/i)
+    if (nameGtdMatch) {
+      const gMatch = nameGtdMatch[0].match(/(\$[\d,.]+\s*(?:k|m|mm)?)\s*gtd/i)
+      if (gMatch) guarantee = gMatch[1]
+    }
   }
 
   return { eventType, eventName, buyIn, gameType, guarantee, details }
