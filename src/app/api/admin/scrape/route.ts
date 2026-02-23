@@ -1,34 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { isAdminEmail } from '@/lib/admin'
 import { scrapeToMarkdown } from '@/lib/scraper/firecrawl'
-import { parsePokerAtlasMarkdown } from '@/lib/scraper/parser'
-import {
-  normalizeGameType,
-  normalizeFormat,
-  normalizeTableSize,
-  detectFlight,
-  parseDayOfWeek,
-  parseDate,
-  parseTime,
-  parseBuyIn,
-  parseGuarantee,
-} from '@/lib/scraper/normalizer'
+import { normalizeScrapedMarkdown } from '@/lib/scraper/pipeline'
 import { getCasinoConfig, CASINO_CONFIGS } from '@/lib/scraper/casino-configs'
-import type { NormalizedTournament } from '@/lib/scraper/types'
-
-function isAdminAuthorized(email: string | null): boolean {
-  const adminEmails = process.env.ADMIN_EMAILS
-  if (!adminEmails) return true
-  if (!email) return false
-  const allowed = adminEmails.split(',').map((e) => e.trim().toLowerCase())
-  return allowed.includes(email.toLowerCase())
-}
 
 export async function POST(request: NextRequest) {
   try {
-    // Auth check
-    const adminEmail = request.headers.get('x-admin-email')
-    if (!isAdminAuthorized(adminEmail)) {
+    // Auth check — use server-side Supabase cookies
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user?.email || !isAdminEmail(user.email)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -83,9 +66,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 2. Parse markdown into raw rows
-    const year = parseInt(config.startDate.substring(0, 4))
-    const { rows: rawRows, errors: parseErrors } = parsePokerAtlasMarkdown(markdown, year)
+    // 2. Parse and normalize via shared pipeline
+    const {
+      tournaments: normalizedTournaments,
+      rawRows,
+      parseErrors,
+      normalizeErrors,
+    } = normalizeScrapedMarkdown(markdown, config)
 
     if (rawRows.length === 0) {
       return NextResponse.json({
@@ -97,72 +84,6 @@ export async function POST(request: NextRequest) {
         ],
         markdownLength: markdown.length,
       })
-    }
-
-    // 3. Normalize rows
-    const normalizedTournaments: NormalizedTournament[] = []
-    const normalizeErrors: string[] = []
-
-    for (let i = 0; i < rawRows.length; i++) {
-      const raw = rawRows[i]
-      try {
-        const date = parseDate(raw.raw_date, year)
-        if (!date) {
-          normalizeErrors.push(`Row ${i + 1}: Could not parse date from "${raw.raw_date}"`)
-          continue
-        }
-
-        const time = parseTime(raw.raw_time)
-        if (!time) {
-          normalizeErrors.push(`Row ${i + 1}: Could not parse time from "${raw.raw_time}"`)
-          continue
-        }
-
-        const buyIn = parseBuyIn(raw.raw_buyin)
-        if (buyIn === null) {
-          normalizeErrors.push(`Row ${i + 1}: Could not parse buy-in from "${raw.raw_buyin}"`)
-          continue
-        }
-
-        const gameType = normalizeGameType(raw.raw_game)
-        const format = normalizeFormat(raw.raw_format, raw.raw_name)
-        const tableSize = normalizeTableSize('', raw.raw_name)
-        const { is_flight, flight_label } = detectFlight(raw.raw_name)
-        const guarantee = parseGuarantee(raw.raw_guarantee)
-        const dayOfWeek = parseDayOfWeek(date)
-
-        // Build event name — include event type context if it's a satellite
-        let name = raw.raw_name
-        if (!name) {
-          name = `${config.colorKey} Event #${raw.raw_event_number || (i + 1)}`
-        }
-
-        normalizedTournaments.push({
-          event_number: parseInt(raw.raw_event_number) || (i + 1),
-          name,
-          date,
-          day_of_week: dayOfWeek,
-          start_time: time,
-          buy_in: buyIn,
-          game_type: gameType,
-          format,
-          table_size: tableSize,
-          starting_stack: null,
-          blind_levels_minutes: null,
-          late_reg_levels: null,
-          late_reg_end_time: null,
-          guaranteed_prize: guarantee,
-          is_flight,
-          flight_label,
-          parent_event_number: null,
-          estimated_duration_hours: null,
-          notes: raw.raw_event_type || null,
-        })
-      } catch (err) {
-        normalizeErrors.push(
-          `Row ${i + 1}: Normalization error: ${err instanceof Error ? err.message : 'Unknown'}`
-        )
-      }
     }
 
     if (normalizedTournaments.length === 0) {

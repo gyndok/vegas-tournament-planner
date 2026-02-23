@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-
-function isAdminAuthorized(email: string | null): boolean {
-  const adminEmails = process.env.ADMIN_EMAILS
-  // Open access during development if ADMIN_EMAILS is not set
-  if (!adminEmails) return true
-  if (!email) return false
-  const allowed = adminEmails.split(',').map((e) => e.trim().toLowerCase())
-  return allowed.includes(email.toLowerCase())
-}
+import { createClient } from '@/lib/supabase/server'
+import { isAdminEmail } from '@/lib/admin'
 
 function parseCSV(raw: string): Record<string, string>[] {
   const lines = raw.split('\n').filter((line) => line.trim() !== '')
@@ -137,9 +130,10 @@ function validateRow(
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authorization
-    const adminEmail = request.headers.get('x-admin-email')
-    if (!isAdminAuthorized(adminEmail)) {
+    // Auth check — use server-side Supabase cookies
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user?.email || !isAdminEmail(user.email)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 

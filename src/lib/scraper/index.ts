@@ -11,6 +11,8 @@ export {
   parseGuarantee,
 } from './normalizer'
 export { CASINO_CONFIGS, getCasinoConfig } from './casino-configs'
+export { normalizeScrapedMarkdown } from './pipeline'
+export type { NormalizationResult } from './pipeline'
 export type {
   CasinoConfig,
   RawScrapedRow,

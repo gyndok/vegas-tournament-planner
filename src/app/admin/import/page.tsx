@@ -21,7 +21,10 @@ import {
   CheckCircle,
   Globe,
   XCircle,
+  ShieldAlert,
+  LogIn,
 } from 'lucide-react'
+import { useUser } from '@/hooks/use-user'
 
 // ===== Shared Types =====
 
@@ -661,8 +664,50 @@ function PasteDataTab() {
 
 // ===== Main Page =====
 
+function isClientAdmin(email: string | undefined | null): boolean {
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
+  if (!adminEmails) return false
+  if (!email) return false
+  const allowed = adminEmails.split(',').map((e) => e.trim().toLowerCase())
+  return allowed.includes(email.toLowerCase())
+}
+
 export default function AdminImportPage() {
+  const { user, loading: userLoading } = useUser()
   const [activeTab, setActiveTab] = useState<TabId>('scrape')
+
+  // Auth guard — loading
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  // Auth guard — not signed in
+  if (!user) {
+    return (
+      <div className="px-4 md:px-6 py-6">
+        <div className="flex flex-col items-center justify-center gap-3 py-16">
+          <LogIn className="size-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">You must be signed in to access this page.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Auth guard — not admin
+  if (!isClientAdmin(user.email)) {
+    return (
+      <div className="px-4 md:px-6 py-6">
+        <div className="flex flex-col items-center justify-center gap-3 py-16">
+          <ShieldAlert className="size-10 text-destructive" />
+          <p className="text-sm text-muted-foreground">Access denied. This page is restricted to administrators.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="px-4 md:px-6 py-6">
