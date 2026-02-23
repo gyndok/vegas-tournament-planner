@@ -22,9 +22,10 @@ export function formatDate(date: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function getSeriesColor(seriesName: string) {
+export function getSeriesColor(seriesName: string, venue?: string) {
+  const searchStr = `${seriesName} ${venue || ''}`.toLowerCase()
   const key = Object.keys(SERIES_COLORS).find(k =>
-    seriesName.toLowerCase().includes(k.toLowerCase())
+    k !== 'default' && searchStr.includes(k.toLowerCase())
   )
   return SERIES_COLORS[key || 'default']
 }

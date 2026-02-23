@@ -14,6 +14,7 @@ import {
   Crown,
   PanelLeftClose,
   PanelLeft,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,14 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
   const router = useRouter()
   const { user, loading } = useUser()
   const { toggleLeft, isLeftOpen } = useSidebar()
+
+  const isAdmin = (() => {
+    if (!user?.email) return false
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
+    if (!adminEmails) return false
+    const allowed = adminEmails.split(',').map((e) => e.trim().toLowerCase())
+    return allowed.includes(user.email.toLowerCase())
+  })()
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -102,6 +111,46 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
 
             return link
           })}
+
+          {/* Admin link — only visible for admin users */}
+          {isAdmin && (
+            <>
+              <Separator className="my-2 bg-sidebar-border" />
+              {(() => {
+                const isAdminActive = pathname.startsWith('/admin')
+                const adminLink = (
+                  <Link
+                    href="/admin/import"
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg text-sm font-medium transition-colors',
+                      collapsed ? 'justify-center p-2.5' : 'px-3 py-2.5',
+                      isAdminActive
+                        ? 'bg-sidebar-accent text-sidebar-primary'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                    )}
+                  >
+                    <Shield className="size-5 shrink-0" />
+                    {!collapsed && <span>Admin</span>}
+                  </Link>
+                )
+
+                if (collapsed) {
+                  return (
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        {adminLink}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={8}>
+                        Admin
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                }
+
+                return adminLink
+              })()}
+            </>
+          )}
         </nav>
       </ScrollArea>
 

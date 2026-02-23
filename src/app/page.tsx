@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                 <div className="space-y-2">
                   {todaysTournaments.map((t) => {
                     const seriesName = t.series?.name ?? ''
-                    const colors = getSeriesColor(seriesName)
+                    const colors = getSeriesColor(seriesName, t.series?.venue)
                     return (
                       <Link
                         key={t.id}
@@ -244,7 +244,7 @@ export default async function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {activeSeries.map((series) => {
-                  const colors = getSeriesColor(series.name)
+                  const colors = getSeriesColor(series.name, series.venue)
                   return (
                     <div key={series.id} className="flex items-start gap-3">
                       <div className={`size-3 rounded-full shrink-0 mt-1.5 ${colors.dot}`} />

@@ -31,7 +31,7 @@ export default async function TournamentDetailPage({
   }
 
   const seriesName = tournament.series?.name || 'Unknown Series'
-  const seriesColor = getSeriesColor(seriesName)
+  const seriesColor = getSeriesColor(seriesName, tournament.series?.venue)
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
