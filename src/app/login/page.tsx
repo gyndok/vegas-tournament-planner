@@ -192,7 +192,7 @@ function LoginForm() {
                     setMode('signup')
                     setError(null)
                   }}
-                  className="text-green-500 hover:underline font-medium"
+                  className="text-primary hover:underline font-medium"
                 >
                   Create Account
                 </button>
@@ -206,7 +206,7 @@ function LoginForm() {
                     setMode('signin')
                     setError(null)
                   }}
-                  className="text-green-500 hover:underline font-medium"
+                  className="text-primary hover:underline font-medium"
                 >
                   Sign In
                 </button>

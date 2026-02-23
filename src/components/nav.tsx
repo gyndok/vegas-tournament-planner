@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useUser } from '@/hooks/use-user'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 const desktopLinks = [
   { href: '/browse', label: 'Browse' },
@@ -48,8 +49,8 @@ export function Nav() {
   return (
     <>
       {/* Desktop navigation - horizontal top bar */}
-      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between border-b border-[#2a2a2a] bg-[#0a0a0a]/95 backdrop-blur-sm px-6">
-        <Link href="/" className="text-xl font-bold text-green-500 tracking-tight">
+      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-6">
+        <Link href="/" className="text-xl font-bold text-primary tracking-tight">
           VTP
         </Link>
 
@@ -61,7 +62,7 @@ export function Nav() {
               className={cn(
                 'px-4 py-2 rounded-md text-sm font-medium transition-colors',
                 pathname === link.href || pathname.startsWith(link.href + '/')
-                  ? 'text-green-500 bg-green-500/10'
+                  ? 'text-primary bg-primary/10'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'
               )}
             >
@@ -70,6 +71,8 @@ export function Nav() {
           ))}
         </div>
 
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
         {!loading && (
           <>
             {user ? (
@@ -77,7 +80,7 @@ export function Nav() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="size-9 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold text-sm p-0"
+                    className="size-9 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold text-sm p-0"
                   >
                     {getUserInitial()}
                   </Button>
@@ -121,10 +124,11 @@ export function Nav() {
         )}
 
         {loading && <div className="w-9 h-9" />}
+        </div>
       </nav>
 
       {/* Mobile navigation - fixed bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#2a2a2a] bg-[#0a0a0a]/95 backdrop-blur-sm">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-sm">
         <div className="flex items-center justify-around h-16 px-2">
           {mobileLinks.map((link) => {
             const Icon = link.icon
@@ -136,7 +140,7 @@ export function Nav() {
                 className={cn(
                   'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px]',
                   isActive
-                    ? 'text-green-500'
+                    ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -153,7 +157,7 @@ export function Nav() {
               className={cn(
                 'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px]',
                 pathname === '/login'
-                  ? 'text-green-500'
+                  ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -168,7 +172,7 @@ export function Nav() {
               className={cn(
                 'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px]',
                 pathname === '/settings'
-                  ? 'text-green-500'
+                  ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >

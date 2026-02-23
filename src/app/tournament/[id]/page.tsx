@@ -61,7 +61,7 @@ export default async function TournamentDetailPage({
       {/* Key info cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Date */}
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-4 space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="size-3" />
@@ -77,20 +77,20 @@ export default async function TournamentDetailPage({
         </Card>
 
         {/* Buy-in */}
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-4 space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <DollarSign className="size-3" />
               Buy-in
             </p>
-            <p className="text-lg font-bold text-green-500">
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatBuyIn(tournament.buy_in)}
             </p>
           </CardContent>
         </Card>
 
         {/* Table Size */}
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-4 space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Users className="size-3" />
@@ -104,13 +104,13 @@ export default async function TournamentDetailPage({
 
         {/* Guarantee */}
         {tournament.guaranteed_prize && tournament.guaranteed_prize > 0 && (
-          <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <Card className="border-border bg-card">
             <CardContent className="p-4 space-y-1">
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Layers className="size-3" />
                 Guarantee
               </p>
-              <p className="text-sm font-semibold text-green-500">
+              <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                 {formatBuyIn(tournament.guaranteed_prize)}
               </p>
             </CardContent>
@@ -128,7 +128,7 @@ export default async function TournamentDetailPage({
       </div>
 
       {/* Tournament Details */}
-      <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+      <Card className="border-border bg-card">
         <CardContent className="p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground">Tournament Details</h2>
           <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
@@ -168,7 +168,7 @@ export default async function TournamentDetailPage({
 
       {/* Flight info */}
       {tournament.is_flight && tournament.flight_label && (
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-5 space-y-2">
             <h2 className="text-sm font-semibold text-foreground">Flight Information</h2>
             <p className="text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ export default async function TournamentDetailPage({
 
       {/* Notes */}
       {tournament.notes && (
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-5 space-y-2">
             <h2 className="text-sm font-semibold text-foreground">Notes</h2>
             <p className="text-sm text-muted-foreground">{tournament.notes}</p>
@@ -193,7 +193,7 @@ export default async function TournamentDetailPage({
 
       {/* Venue info */}
       {tournament.series?.venue && (
-        <Card className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <Card className="border-border bg-card">
           <CardContent className="p-5 space-y-2">
             <h2 className="text-sm font-semibold text-foreground">Venue</h2>
             <p className="text-sm text-muted-foreground">{tournament.series.venue}</p>

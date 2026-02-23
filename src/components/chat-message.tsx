@@ -61,7 +61,7 @@ function TournamentMiniCard({ tournament }: { tournament: ChatMessageType['tourn
   return (
     <Link
       href={`/tournament/${tournament.id}`}
-      className="block rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-3 transition-colors hover:bg-[#222222]"
+      className="block rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent"
     >
       <div className="flex items-center gap-2 mb-1">
         <span
@@ -74,9 +74,9 @@ function TournamentMiniCard({ tournament }: { tournament: ChatMessageType['tourn
       <p className="text-xs font-medium leading-snug line-clamp-1 mb-1">{tournament.name}</p>
       <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
         <span>{formatDate(tournament.date)}</span>
-        <span className="text-[#2a2a2a]">|</span>
+        <span className="text-border">|</span>
         <span>{formatTime(tournament.start_time)}</span>
-        <span className="text-[#2a2a2a]">|</span>
+        <span className="text-border">|</span>
         <Badge variant="secondary" className="text-[9px] px-1 py-0 h-auto">
           {tournament.game_type}
         </Badge>
@@ -96,13 +96,13 @@ export function ChatMessageBubble({ message }: ChatMessageProps) {
       {/* Avatar */}
       <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-          isUser ? 'bg-primary/20' : 'bg-green-500/20'
+          isUser ? 'bg-primary/20' : 'bg-primary/20'
         }`}
       >
         {isUser ? (
           <User className="h-4 w-4 text-primary" />
         ) : (
-          <Bot className="h-4 w-4 text-green-500" />
+          <Bot className="h-4 w-4 text-primary" />
         )}
       </div>
 
@@ -112,7 +112,7 @@ export function ChatMessageBubble({ message }: ChatMessageProps) {
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isUser
               ? 'bg-primary/10 text-foreground rounded-tr-sm'
-              : 'bg-[#1a1a1a] border border-[#2a2a2a] text-foreground rounded-tl-sm'
+              : 'bg-card border border-border text-foreground rounded-tl-sm'
           }`}
         >
           {formatMessageText(message.content)}

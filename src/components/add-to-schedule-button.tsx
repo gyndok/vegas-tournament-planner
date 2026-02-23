@@ -107,7 +107,7 @@ export function AddToScheduleButton({ tournamentId }: AddToScheduleButtonProps) 
         <Button
           onClick={handleRemove}
           disabled={actionLoading}
-          className="w-full md:w-auto gap-2 bg-green-600 hover:bg-green-700 text-white"
+          className="w-full md:w-auto gap-2 bg-primary hover:bg-primary/90 text-white"
           size="lg"
         >
           {actionLoading ? (
@@ -121,7 +121,7 @@ export function AddToScheduleButton({ tournamentId }: AddToScheduleButtonProps) 
           <p className="text-xs text-red-500 mt-2">{error}</p>
         )}
         {success && (
-          <p className="text-xs text-green-500 mt-2">{success}</p>
+          <p className="text-xs text-primary mt-2">{success}</p>
         )}
       </div>
     )
@@ -147,7 +147,7 @@ export function AddToScheduleButton({ tournamentId }: AddToScheduleButtonProps) 
         <p className="text-xs text-red-500 mt-2">{error}</p>
       )}
       {success && (
-        <p className="text-xs text-green-500 mt-2">{success}</p>
+        <p className="text-xs text-primary mt-2">{success}</p>
       )}
     </div>
   )

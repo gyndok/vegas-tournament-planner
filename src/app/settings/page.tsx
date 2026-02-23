@@ -144,7 +144,7 @@ export default function SettingsPage() {
           className={cn(
             'rounded-md border p-3 text-sm flex items-center gap-2',
             feedback.type === 'success'
-              ? 'bg-green-500/10 border-green-500/20 text-green-500'
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
               : 'bg-destructive/10 border-destructive/20 text-destructive'
           )}
         >
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                 className={cn(
                   'cursor-pointer transition-colors',
                   preferredGames.includes(game)
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
                     : 'hover:bg-accent'
                 )}
                 onClick={() => toggleItem(preferredGames, game, setPreferredGames)}
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                 className={cn(
                   'cursor-pointer transition-colors',
                   preferredFormats.includes(format)
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
                     : 'hover:bg-accent'
                 )}
                 onClick={() => toggleItem(preferredFormats, format, setPreferredFormats)}
@@ -288,7 +288,7 @@ export default function SettingsPage() {
               type="checkbox"
               checked={avoidTurbos}
               onChange={(e) => setAvoidTurbos(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-600 bg-transparent text-green-600 focus:ring-green-500 focus:ring-offset-0"
+              className="h-4 w-4 rounded border-gray-600 bg-transparent text-primary focus:ring-primary focus:ring-offset-0"
             />
             <span className="text-sm">Avoid turbo and super turbo tournaments</span>
           </label>

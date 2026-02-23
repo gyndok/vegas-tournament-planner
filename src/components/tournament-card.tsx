@@ -16,7 +16,7 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
 
   return (
     <Link href={`/tournament/${tournament.id}`} className="block group">
-      <Card className="border-[#2a2a2a] bg-[#1a1a1a] py-0 gap-0 transition-colors hover:bg-[#222222] group-focus-visible:ring-2 group-focus-visible:ring-primary">
+      <Card className="border-border bg-card py-0 gap-0 transition-colors hover:bg-accent group-focus-visible:ring-2 group-focus-visible:ring-primary">
         <CardContent className="p-4 space-y-3">
           {/* Top row: Series badge + Event number */}
           <div className="flex items-center justify-between">
@@ -40,7 +40,7 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
             <span>
               {formatDate(tournament.date)} ({tournament.day_of_week})
             </span>
-            <span className="text-[#2a2a2a]">|</span>
+            <span className="text-border">|</span>
             <span>{formatTime(tournament.start_time)}</span>
           </div>
 
@@ -68,16 +68,16 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
               {tournament.guaranteed_prize && tournament.guaranteed_prize > 0 && (
                 <>
                   {tournament.table_size !== 9 && (
-                    <span className="text-[#2a2a2a]">|</span>
+                    <span className="text-border">|</span>
                   )}
-                  <span className="text-green-500 font-medium">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
                     GTD {formatBuyIn(tournament.guaranteed_prize)}
                   </span>
                 </>
               )}
               {tournament.is_flight && tournament.flight_label && (
                 <>
-                  <span className="text-[#2a2a2a]">|</span>
+                  <span className="text-border">|</span>
                   <span>Flight {tournament.flight_label}</span>
                 </>
               )}

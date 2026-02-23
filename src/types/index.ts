@@ -85,10 +85,10 @@ export interface ChatMessage {
   timestamp: Date
 }
 
-export const SERIES_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  WSOP: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', label: 'WSOP' },
-  Venetian: { bg: 'bg-red-600/20', text: 'text-red-500', label: 'Venetian' },
-  Wynn: { bg: 'bg-green-600/20', text: 'text-green-500', label: 'Wynn' },
-  Aria: { bg: 'bg-blue-600/20', text: 'text-blue-500', label: 'Aria' },
-  default: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'Other' },
+export const SERIES_COLORS: Record<string, { bg: string; text: string; label: string; dot: string }> = {
+  WSOP: { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400', label: 'WSOP', dot: 'bg-amber-500' },
+  Venetian: { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-400', label: 'Venetian', dot: 'bg-red-500' },
+  Wynn: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', label: 'Wynn', dot: 'bg-emerald-500' },
+  Aria: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', label: 'Aria', dot: 'bg-blue-500' },
+  default: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Other', dot: 'bg-gray-400' },
 }

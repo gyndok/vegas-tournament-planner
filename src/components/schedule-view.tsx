@@ -23,7 +23,7 @@ interface ScheduleViewProps {
 }
 
 const PRIORITY_CONFIG = {
-  target: { label: 'Target', className: 'bg-green-600 hover:bg-green-700 text-white' },
+  target: { label: 'Target', className: 'bg-primary hover:bg-primary/90 text-primary-foreground' },
   backup: { label: 'Backup', className: 'bg-yellow-600 hover:bg-yellow-700 text-white' },
   maybe: { label: 'Maybe', className: 'bg-gray-600 hover:bg-gray-700 text-white' },
 }
@@ -147,7 +147,7 @@ export function ScheduleView({ entries, onUpdateEntry, onRemoveEntry }: Schedule
                           <div className="flex items-center gap-2 flex-wrap">
                             <Link
                               href={`/tournament/${t.id}`}
-                              className="font-medium text-sm hover:text-green-500 transition-colors truncate"
+                              className="font-medium text-sm hover:text-primary transition-colors truncate"
                             >
                               {t.name}
                             </Link>

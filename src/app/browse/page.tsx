@@ -38,7 +38,7 @@ function BrowseContent() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-[180px] rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] animate-pulse"
+                className="h-[180px] rounded-lg bg-card border border-border animate-pulse"
               />
             ))}
           </div>
@@ -94,7 +94,7 @@ export default function BrowsePage() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[180px] rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] animate-pulse"
+                  className="h-[180px] rounded-lg bg-card border border-border animate-pulse"
                 />
               ))}
             </div>

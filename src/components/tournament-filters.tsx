@@ -261,7 +261,7 @@ export function TournamentFilters() {
               <SlidersHorizontal className="size-4" />
               Filters
               {filterCount > 0 && (
-                <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-black">
+                <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-black">
                   {filterCount}
                 </span>
               )}

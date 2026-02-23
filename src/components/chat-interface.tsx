@@ -17,10 +17,10 @@ const SUGGESTED_PROMPTS = [
 function TypingIndicator() {
   return (
     <div className="flex gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/20">
-        <Loader2 className="h-4 w-4 text-green-500 animate-spin" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20">
+        <Loader2 className="h-4 w-4 text-primary animate-spin" />
       </div>
-      <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3">
+      <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-card border border-border px-4 py-3">
         <span className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:0ms]" />
         <span className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
         <span className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
@@ -77,10 +77,10 @@ export function ChatInterface() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#2a2a2a] px-4 py-3 md:px-6">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 md:px-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
-            <MessageSquare className="h-4 w-4 text-green-500" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
+            <MessageSquare className="h-4 w-4 text-primary" />
           </div>
           <div>
             <h1 className="text-sm font-semibold">AI Tournament Planner</h1>
@@ -106,8 +106,8 @@ export function ChatInterface() {
           {isEmpty ? (
             // Empty state
             <div className="flex h-full min-h-[50vh] flex-col items-center justify-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 mb-6">
-                <MessageSquare className="h-8 w-8 text-green-500" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
+                <MessageSquare className="h-8 w-8 text-primary" />
               </div>
               <h2 className="text-xl font-semibold mb-2">Plan Your Tournament Trip</h2>
               <p className="text-sm text-muted-foreground max-w-md mb-8">
@@ -120,7 +120,7 @@ export function ChatInterface() {
                     key={prompt}
                     onClick={() => handlePromptClick(prompt)}
                     disabled={isLoading}
-                    className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-left text-sm transition-colors hover:bg-[#222222] disabled:opacity-50"
+                    className="rounded-xl border border-border bg-card px-4 py-3 text-left text-sm transition-colors hover:bg-accent disabled:opacity-50"
                   >
                     {prompt}
                   </button>
@@ -145,7 +145,7 @@ export function ChatInterface() {
       </ScrollArea>
 
       {/* Input area */}
-      <div className="border-t border-[#2a2a2a] px-4 py-3 md:px-6">
+      <div className="border-t border-border px-4 py-3 md:px-6">
         <div className="mx-auto flex max-w-3xl items-end gap-2">
           <div className="relative flex-1">
             <textarea
@@ -156,14 +156,14 @@ export function ChatInterface() {
               placeholder="Ask about tournaments..."
               disabled={isLoading}
               rows={1}
-              className="w-full resize-none rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus:border-green-500/50 focus:outline-none focus:ring-1 focus:ring-green-500/50 disabled:opacity-50"
+              className="w-full resize-none rounded-xl border border-border bg-card px-4 py-3 pr-12 text-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
             />
           </div>
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="h-[46px] w-[46px] shrink-0 rounded-xl bg-green-600 hover:bg-green-700 text-white"
+            className="h-[46px] w-[46px] shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

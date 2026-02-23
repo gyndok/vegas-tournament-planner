@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
 import { Nav } from "@/components/nav";
 import "./globals.css";
 
@@ -26,14 +27,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <TooltipProvider>
-          <Nav />
-          <main className="pb-20 md:pb-0 md:pt-16">{children}</main>
-        </TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Nav />
+            <main className="pb-20 md:pb-0 md:pt-16">{children}</main>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

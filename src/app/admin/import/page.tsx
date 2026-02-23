@@ -213,7 +213,7 @@ export default function AdminImportPage() {
         <select
           value={selectedSeries}
           onChange={(e) => setSelectedSeries(e.target.value)}
-          className="w-full rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-green-500/40"
+          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
           <option value="new">+ Create New Series</option>
           {seriesList.map((s) => (
@@ -225,7 +225,7 @@ export default function AdminImportPage() {
 
         {/* New Series Form */}
         {selectedSeries === 'new' && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-[#2a2a2a] bg-[#111] p-4">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-border bg-muted p-4">
             <div>
               <Label htmlFor="series-name" className="text-xs text-muted-foreground">Name *</Label>
               <Input
@@ -289,7 +289,7 @@ export default function AdminImportPage() {
             variant={format === 'json' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFormat('json')}
-            className={format === 'json' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+            className={format === 'json' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : ''}
           >
             JSON
           </Button>
@@ -297,7 +297,7 @@ export default function AdminImportPage() {
             variant={format === 'csv' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFormat('csv')}
-            className={format === 'csv' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+            className={format === 'csv' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : ''}
           >
             CSV
           </Button>
@@ -314,7 +314,7 @@ export default function AdminImportPage() {
           Show example {format.toUpperCase()} format
         </button>
         {showSample && (
-          <pre className="mt-3 overflow-x-auto rounded-lg border border-[#2a2a2a] bg-[#111] p-4 text-xs text-muted-foreground font-mono">
+          <pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-muted p-4 text-xs text-muted-foreground font-mono">
             {format === 'json' ? SAMPLE_JSON : SAMPLE_CSV}
           </pre>
         )}
@@ -335,7 +335,7 @@ export default function AdminImportPage() {
             setResult(null)
           }}
           placeholder={`Paste your ${format.toUpperCase()} data here...`}
-          className="w-full h-64 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-green-500/40 resize-y"
+          className="w-full h-64 rounded-lg border border-border bg-card px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
         />
       </section>
 
@@ -348,7 +348,7 @@ export default function AdminImportPage() {
         <Button
           onClick={handleImport}
           disabled={importing || !data.trim()}
-          className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {importing ? (
             <>
@@ -377,10 +377,10 @@ export default function AdminImportPage() {
           <h2 className="text-lg font-semibold mb-3">
             Preview ({preview.length} of {data ? '...' : '0'} rows)
           </h2>
-          <div className="overflow-x-auto rounded-lg border border-[#2a2a2a]">
+          <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#2a2a2a] bg-[#111]">
+                <tr className="border-b border-border bg-muted">
                   {previewHeaders.map((h) => (
                     <th key={h} className="px-3 py-2 text-left text-xs font-medium text-muted-foreground whitespace-nowrap">
                       {h}
@@ -390,7 +390,7 @@ export default function AdminImportPage() {
               </thead>
               <tbody>
                 {preview.map((row, i) => (
-                  <tr key={i} className="border-b border-[#2a2a2a] last:border-0">
+                  <tr key={i} className="border-b border-border last:border-0">
                     {previewHeaders.map((h) => (
                       <td key={h} className="px-3 py-2 whitespace-nowrap text-foreground">
                         {String(row[h] ?? '')}
@@ -412,15 +412,15 @@ export default function AdminImportPage() {
               {result.error}
             </div>
           ) : (
-            <div className="rounded-lg border border-[#2a2a2a] bg-[#111] p-4 space-y-3">
+            <div className="rounded-lg border border-border bg-muted p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <CheckCircle className="size-5 text-green-500" />
+                <CheckCircle className="size-5 text-emerald-600 dark:text-emerald-400" />
                 <span className="font-semibold">Import Complete</span>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Inserted:</span>{' '}
-                  <span className="font-semibold text-green-400">{result.inserted}</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">{result.inserted}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Skipped:</span>{' '}
