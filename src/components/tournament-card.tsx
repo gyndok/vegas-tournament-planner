@@ -5,6 +5,7 @@ import { Tournament } from '@/types'
 import { getSeriesColor, formatBuyIn, formatTime, formatDate } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { QuickAddButton } from '@/components/quick-add-button'
 
 interface TournamentCardProps {
   tournament: Tournament
@@ -18,16 +19,19 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
     <Link href={`/tournament/${tournament.id}`} className="block group">
       <Card className="border-border bg-card py-0 gap-0 transition-colors hover:bg-accent group-focus-visible:ring-2 group-focus-visible:ring-primary">
         <CardContent className="p-4 space-y-3">
-          {/* Top row: Series badge + Event number */}
+          {/* Top row: Series badge + Event number + Quick add */}
           <div className="flex items-center justify-between">
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${seriesColor.bg} ${seriesColor.text}`}
             >
               {seriesColor.label}
             </span>
-            <span className="text-xs text-muted-foreground">
-              #{tournament.event_number}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground">
+                #{tournament.event_number}
+              </span>
+              <QuickAddButton tournamentId={tournament.id} />
+            </div>
           </div>
 
           {/* Title */}
