@@ -25,6 +25,12 @@ export function useTournaments(filters: TournamentFilters) {
       filters.formats?.forEach(f => params.append('format', f))
       filters.tableSizes?.forEach(t => params.append('tableSize', String(t)))
       if (filters.sortBy) params.set('sortBy', filters.sortBy)
+      if (filters.startTimeFrom) params.set('startTimeFrom', filters.startTimeFrom)
+      if (filters.startTimeTo) params.set('startTimeTo', filters.startTimeTo)
+      if (filters.avoidTurbos) params.set('avoidTurbos', 'true')
+      if (filters.hasGuarantee) params.set('hasGuarantee', 'true')
+      if (filters.guaranteeMin !== undefined) params.set('guaranteeMin', String(filters.guaranteeMin))
+      if (filters.guaranteeMax !== undefined) params.set('guaranteeMax', String(filters.guaranteeMax))
       params.set('limit', '100')
 
       try {
@@ -54,6 +60,8 @@ export function useTournaments(filters: TournamentFilters) {
     return () => controller.abort()
   }, [filters.dateFrom, filters.dateTo, filters.buyInMin, filters.buyInMax,
       filters.gameTypes, filters.formats, filters.tableSizes, filters.sortBy,
+      filters.startTimeFrom, filters.startTimeTo, filters.avoidTurbos,
+      filters.hasGuarantee, filters.guaranteeMin, filters.guaranteeMax,
       gameTypes, formats, tableSizes])
 
   return { tournaments, loading, error }

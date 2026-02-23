@@ -16,6 +16,12 @@ export function useTournamentFilters() {
     gameTypes: searchParams.getAll('gameType').filter(Boolean),
     formats: searchParams.getAll('format').filter(Boolean),
     tableSizes: searchParams.getAll('tableSize').map(Number).filter(Boolean),
+    startTimeFrom: searchParams.get('startTimeFrom') || undefined,
+    startTimeTo: searchParams.get('startTimeTo') || undefined,
+    avoidTurbos: searchParams.get('avoidTurbos') === 'true',
+    hasGuarantee: searchParams.get('hasGuarantee') === 'true',
+    guaranteeMin: searchParams.get('guaranteeMin') ? Number(searchParams.get('guaranteeMin')) : undefined,
+    guaranteeMax: searchParams.get('guaranteeMax') ? Number(searchParams.get('guaranteeMax')) : undefined,
     sortBy: (searchParams.get('sortBy') as TournamentFilters['sortBy']) || undefined,
   }), [searchParams])
 
@@ -36,6 +42,20 @@ export function useTournamentFilters() {
     router.replace(pathname, { scroll: false })
   }, [router, pathname])
 
+  const batchSetFilters = useCallback((newFilters: Record<string, string | string[] | null>) => {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(newFilters)) {
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(v => params.append(key, v))
+        } else {
+          params.set(key, value)
+        }
+      }
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [router, pathname])
+
   const filterCount = useMemo(() => {
     let count = 0
     if (filters.dateFrom || filters.dateTo) count++
@@ -43,8 +63,11 @@ export function useTournamentFilters() {
     if (filters.gameTypes?.length) count++
     if (filters.formats?.length) count++
     if (filters.tableSizes?.length) count++
+    if (filters.startTimeFrom || filters.startTimeTo) count++
+    if (filters.avoidTurbos) count++
+    if (filters.hasGuarantee) count++
     return count
   }, [filters])
 
-  return { filters, setFilter, resetFilters, filterCount }
+  return { filters, setFilter, resetFilters, filterCount, batchSetFilters }
 }
