@@ -242,6 +242,52 @@ function FilterSections() {
         </div>
       </div>
 
+      {/* Guarantee */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Guarantee</h4>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={filters.hasGuarantee || false}
+            onChange={(e) => {
+              setFilter('hasGuarantee', e.target.checked ? 'true' : null)
+              if (!e.target.checked) {
+                setTimeout(() => setFilter('guaranteeMin', null), 0)
+                setTimeout(() => setFilter('guaranteeMax', null), 10)
+              }
+            }}
+            className="h-4 w-4 rounded border-gray-600 bg-transparent text-primary focus:ring-primary focus:ring-offset-0"
+          />
+          <span className="text-xs">Has guarantee</span>
+        </label>
+        {filters.hasGuarantee && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Min ($)</label>
+              <Input
+                type="number"
+                min="0"
+                placeholder="0"
+                value={filters.guaranteeMin ?? ''}
+                onChange={(e) => setFilter('guaranteeMin', e.target.value || null)}
+                className="text-xs h-8"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Max ($)</label>
+              <Input
+                type="number"
+                min="0"
+                placeholder="Any"
+                value={filters.guaranteeMax ?? ''}
+                onChange={(e) => setFilter('guaranteeMax', e.target.value || null)}
+                className="text-xs h-8"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Sort */}
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-foreground">Sort By</h4>
