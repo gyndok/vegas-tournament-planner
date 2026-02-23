@@ -70,8 +70,12 @@ export interface TournamentFilters {
   gameTypes?: string[]
   formats?: string[]
   tableSizes?: number[]
-  startTimeFrom?: string
-  startTimeTo?: string
+  startTimeFrom?: string    // e.g. "10:00"
+  startTimeTo?: string      // e.g. "20:00"
+  avoidTurbos?: boolean
+  hasGuarantee?: boolean
+  guaranteeMin?: number
+  guaranteeMax?: number
   sortBy?: 'date' | 'buy_in_asc' | 'buy_in_desc' | 'guarantee_desc'
   limit?: number
   offset?: number
