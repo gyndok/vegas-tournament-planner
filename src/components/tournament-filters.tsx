@@ -145,7 +145,7 @@ function FilterSections() {
         </div>
       </div>
 
-      {/* Buy-in Presets */}
+      {/* Buy-in */}
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-foreground">Buy-in</h4>
         <div className="flex flex-wrap gap-2">
@@ -181,6 +181,30 @@ function FilterSections() {
           >
             Any
           </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Min ($)</label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0"
+              value={filters.buyInMin ?? ''}
+              onChange={(e) => setFilter('buyInMin', e.target.value || null)}
+              className="text-xs h-8"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Max ($)</label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="Any"
+              value={filters.buyInMax ?? ''}
+              onChange={(e) => setFilter('buyInMax', e.target.value || null)}
+              className="text-xs h-8"
+            />
+          </div>
         </div>
       </div>
 
