@@ -20,18 +20,35 @@ export function buildTournamentQuery(
   if (filters.startTimeFrom) query = query.gte('start_time', filters.startTimeFrom)
   if (filters.startTimeTo) query = query.lte('start_time', filters.startTimeTo)
 
-  switch (filters.sortBy) {
-    case 'buy_in_asc':
-      query = query.order('buy_in', { ascending: true })
-      break
-    case 'buy_in_desc':
-      query = query.order('buy_in', { ascending: false })
-      break
-    case 'guarantee_desc':
-      query = query.order('guaranteed_prize', { ascending: false, nullsFirst: false })
-      break
-    default:
-      query = query.order('date').order('start_time')
+  // Turbo exclusion
+  if (filters.avoidTurbos) {
+    query = query.not('format', 'ilike', '%turbo%')
+  }
+
+  // Guarantee filters
+  if (filters.hasGuarantee) {
+    query = query.gt('guaranteed_prize', 0)
+    if (filters.guaranteeMin !== undefined) query = query.gte('guaranteed_prize', filters.guaranteeMin)
+    if (filters.guaranteeMax !== undefined) query = query.lte('guaranteed_prize', filters.guaranteeMax)
+  }
+
+  // Sorting — when hasGuarantee is active, compound sort: date ASC then guarantee DESC
+  if (filters.hasGuarantee) {
+    query = query.order('date').order('guaranteed_prize', { ascending: false })
+  } else {
+    switch (filters.sortBy) {
+      case 'buy_in_asc':
+        query = query.order('buy_in', { ascending: true })
+        break
+      case 'buy_in_desc':
+        query = query.order('buy_in', { ascending: false })
+        break
+      case 'guarantee_desc':
+        query = query.order('guaranteed_prize', { ascending: false, nullsFirst: false })
+        break
+      default:
+        query = query.order('date').order('start_time')
+    }
   }
 
   if (filters.limit) query = query.limit(filters.limit)
