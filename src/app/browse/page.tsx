@@ -13,7 +13,7 @@ function BrowseContent() {
   const { tournaments, loading, error } = useTournaments(filters)
 
   return (
-    <div className="flex gap-8 px-4 md:px-6 py-6 max-w-7xl mx-auto">
+    <div className="flex gap-6 px-4 md:px-6 py-6">
       {/* Desktop sidebar */}
       <TournamentFilters />
 
@@ -86,7 +86,7 @@ export default function BrowsePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex gap-8 px-4 md:px-6 py-6 max-w-7xl mx-auto">
+        <div className="flex gap-6 px-4 md:px-6 py-6">
           <div className="hidden md:block w-[280px] shrink-0" />
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">Browse Tournaments</h1>

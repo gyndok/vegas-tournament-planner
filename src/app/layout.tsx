@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
-import { Nav } from "@/components/nav";
+import { DashboardShell } from "@/components/dashboard-shell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vegas Tournament Planner",
+  title: "NextRebuy — Plan Your Grind",
   description:
     "AI-powered poker tournament scheduling for Las Vegas festivals",
 };
@@ -36,8 +36,9 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <TooltipProvider>
-            <Nav />
-            <main className="pb-20 md:pb-0 md:pt-16">{children}</main>
+            <DashboardShell>
+              {children}
+            </DashboardShell>
           </TooltipProvider>
         </ThemeProvider>
       </body>

@@ -1,97 +1,270 @@
-import Link from "next/link"
-import { Search, MessageSquare, Calendar } from "lucide-react"
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Search, MessageSquare, Calendar, TrendingUp, ArrowRight } from 'lucide-react'
+import { DashboardScheduleSummary } from '@/components/dashboard-schedule-summary'
+import { Tournament, Series } from '@/types'
+
+interface TournamentWithSeries extends Omit<Tournament, 'series'> {
+  series: Series | null
+}
 
 function getTodayStr() {
-  const d = new Date()
-  return d.toISOString().split("T")[0]
+  // Use Pacific Time for "today"
+  const now = new Date()
+  const pt = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))
+  return pt.toISOString().split('T')[0]
 }
 
 function getWeekEndStr() {
-  const d = new Date()
-  d.setDate(d.getDate() + 7)
-  return d.toISOString().split("T")[0]
+  const now = new Date()
+  const pt = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }))
+  pt.setDate(pt.getDate() + 7)
+  return pt.toISOString().split('T')[0]
 }
 
-export default function Home() {
+export default async function DashboardPage() {
+  const supabase = await createClient()
   const today = getTodayStr()
   const weekEnd = getWeekEndStr()
 
+  // Fetch today's tournaments
+  const { data: todaysTournaments } = await supabase
+    .from('tournaments')
+    .select('*, series:series_id(*)')
+    .eq('date', today)
+    .order('start_time', { ascending: true })
+    .limit(6)
+    .returns<TournamentWithSeries[]>()
+
+  // Fetch this week's tournaments (count by day)
+  const { data: weekTournaments } = await supabase
+    .from('tournaments')
+    .select('id, date, name, start_time, buy_in, series:series_id(name)')
+    .gte('date', today)
+    .lte('date', weekEnd)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true })
+    .returns<(Pick<Tournament, 'id' | 'date' | 'name' | 'start_time' | 'buy_in'> & { series: { name: string } | null })[]>()
+
+  // Group week tournaments by day
+  const weekByDay = new Map<string, number>()
+  for (const t of weekTournaments ?? []) {
+    weekByDay.set(t.date, (weekByDay.get(t.date) ?? 0) + 1)
+  }
+
+  // Get active series
+  const { data: activeSeries } = await supabase
+    .from('series')
+    .select('*')
+    .lte('start_date', weekEnd)
+    .gte('end_date', today)
+    .order('start_date', { ascending: true })
+
   return (
-    <div className="min-h-screen">
-      {/* Hero */}
-      <section className="flex flex-col items-center justify-center px-4 pt-20 pb-12 text-center md:pt-32 md:pb-20">
-        <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-          Vegas Tournament
-          <span className="block text-primary"> Planner</span>
-        </h1>
-        <p className="mt-4 max-w-lg text-lg text-muted-foreground">
-          AI-powered tournament scheduling for Las Vegas poker festivals.
-          Find your next game, plan your week, maximize your time.
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Welcome */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Your tournament command center
         </p>
+      </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link
-            href={`/browse?dateFrom=${today}&dateTo=${today}`}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            <Calendar className="h-4 w-4" />
-            Today&apos;s Tournaments
-          </Link>
-          <Link
-            href={`/browse?dateFrom=${today}&dateTo=${weekEnd}`}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            <Search className="h-4 w-4" />
-            This Week
-          </Link>
-          <Link
-            href="/browse"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            Browse All
-          </Link>
-        </div>
-      </section>
-
-      {/* Active Series */}
-      <section className="mx-auto max-w-2xl px-4 pb-12">
-        <h2 className="mb-4 text-lg font-semibold text-muted-foreground">Active Series</h2>
-        <div className="rounded-xl border border-border bg-card p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="inline-block rounded-full bg-yellow-500/20 px-3 py-1 text-xs font-medium text-yellow-500">
-                WSOP
-              </span>
-              <h3 className="mt-2 text-xl font-bold">2026 World Series of Poker</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Horseshoe &amp; Paris Las Vegas
-              </p>
-              <p className="text-sm text-muted-foreground">May 26 – Jul 15, 2026</p>
-              <p className="mt-2 text-sm font-medium text-primary">100 bracelet events</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Chat CTA */}
-      <section className="mx-auto max-w-2xl px-4 pb-20">
+      {/* Quick Action Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Link
-          href="/chat"
-          className="flex items-center gap-4 rounded-xl border border-primary/30 bg-primary/5 p-6 transition-colors hover:bg-primary/10"
+          href={`/browse?dateFrom=${today}&dateTo=${today}`}
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent group"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/20">
-            <MessageSquare className="h-6 w-6 text-primary" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Calendar className="size-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Plan with AI</h3>
-            <p className="text-sm text-muted-foreground">
-              Ask our AI planner to build your perfect tournament schedule.
-              &ldquo;Plan my week — NLH and PLO, under $1,500.&rdquo;
-            </p>
+            <div className="text-sm font-semibold">Today&apos;s Events</div>
+            <div className="text-xs text-muted-foreground">
+              {todaysTournaments?.length ?? 0} tournaments
+            </div>
           </div>
+          <ArrowRight className="size-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
         </Link>
-      </section>
+
+        <Link
+          href="/chat"
+          className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10 group"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/20">
+            <MessageSquare className="size-5 text-primary" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">AI Advisor</div>
+            <div className="text-xs text-muted-foreground">Plan your grind</div>
+          </div>
+          <ArrowRight className="size-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+
+        <Link
+          href="/browse"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent group"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Search className="size-5 text-muted-foreground" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Browse All</div>
+            <div className="text-xs text-muted-foreground">Find tournaments</div>
+          </div>
+          <ArrowRight className="size-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+      </div>
+
+      {/* Main grid: Today's Tournaments + Schedule Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Today's Tournaments — takes 2 columns */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="size-4 text-primary" />
+                  Today&apos;s Tournaments
+                </CardTitle>
+                <Link
+                  href={`/browse?dateFrom=${today}&dateTo=${today}`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  View all →
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {(!todaysTournaments || todaysTournaments.length === 0) ? (
+                <div className="text-center py-8">
+                  <Calendar className="size-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">No tournaments today</p>
+                  <Link
+                    href="/browse"
+                    className="text-xs text-primary hover:underline mt-1 inline-block"
+                  >
+                    Browse upcoming events
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {todaysTournaments.map((t) => {
+                    const seriesName = t.series?.name ?? ''
+                    const colors = getSeriesColor(seriesName)
+                    return (
+                      <Link
+                        key={t.id}
+                        href={`/tournament/${t.id}`}
+                        className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-accent"
+                      >
+                        <div className={`size-2 rounded-full shrink-0 ${colors.dot}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{t.name}</div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span>{formatTime(t.start_time)}</span>
+                            <span>·</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {formatBuyIn(t.buy_in)}
+                            </span>
+                            <span>·</span>
+                            <span>{t.game_type}</span>
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`shrink-0 text-[10px] ${colors.bg} ${colors.text} border-0`}
+                        >
+                          {colors.label}
+                        </Badge>
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Schedule Summary — takes 1 column */}
+        <div>
+          <DashboardScheduleSummary />
+        </div>
+      </div>
+
+      {/* This Week + Active Series */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* This Week */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">This Week</CardTitle>
+              <Link
+                href={`/browse?dateFrom=${today}&dateTo=${weekEnd}`}
+                className="text-xs text-primary hover:underline"
+              >
+                Browse →
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {weekByDay.size === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No events this week</p>
+            ) : (
+              <div className="space-y-2">
+                {[...weekByDay.entries()].map(([date, count]) => (
+                  <Link
+                    key={date}
+                    href={`/browse?dateFrom=${date}&dateTo=${date}`}
+                    className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-accent transition-colors"
+                  >
+                    <span className="text-sm">{formatDate(date)}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {count} event{count !== 1 ? 's' : ''}
+                    </Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active Series */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Active Series</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(!activeSeries || activeSeries.length === 0) ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No active series</p>
+            ) : (
+              <div className="space-y-3">
+                {activeSeries.map((series) => {
+                  const colors = getSeriesColor(series.name)
+                  return (
+                    <div key={series.id} className="flex items-start gap-3">
+                      <div className={`size-3 rounded-full shrink-0 mt-1.5 ${colors.dot}`} />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium">{series.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {series.venue}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(series.start_date)} – {formatDate(series.end_date)}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

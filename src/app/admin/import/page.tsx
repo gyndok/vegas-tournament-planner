@@ -198,11 +198,11 @@ export default function AdminImportPage() {
   const previewHeaders = preview && preview.length > 0 ? Object.keys(preview[0]) : []
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="px-4 md:px-6 py-6">
       {/* Warning banner */}
       <div className="mb-6 flex items-center gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
         <AlertTriangle className="size-5 text-yellow-500 shrink-0" />
-        <span className="text-sm text-yellow-200">Admin area &mdash; data import tool</span>
+        <span className="text-sm text-yellow-700 dark:text-yellow-200">Admin area &mdash; data import tool</span>
       </div>
 
       <h1 className="text-2xl font-bold mb-8">Import Tournament Data</h1>

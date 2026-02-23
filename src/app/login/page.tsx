@@ -92,7 +92,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4">
+    <div className="flex items-center justify-center h-full px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">
@@ -100,8 +100,8 @@ function LoginForm() {
           </CardTitle>
           <CardDescription>
             {mode === 'signin'
-              ? 'Sign in to Vegas Tournament Planner'
-              : 'Create your Vegas Tournament Planner account'}
+              ? 'Sign in to NextRebuy'
+              : 'Create your NextRebuy account'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
