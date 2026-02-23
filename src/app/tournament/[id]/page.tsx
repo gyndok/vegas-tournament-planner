@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowLeft, CalendarPlus, Clock, DollarSign, Users, Layers } from 'lucide-react'
+import { ArrowLeft, Clock, DollarSign, Users, Layers } from 'lucide-react'
+import { AddToScheduleButton } from '@/components/add-to-schedule-button'
 import { Tournament, Series } from '@/types'
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
@@ -202,15 +202,7 @@ export default async function TournamentDetailPage({
       )}
 
       {/* Add to Schedule button */}
-      <div className="pt-2">
-        <Button disabled className="w-full md:w-auto gap-2" size="lg">
-          <CalendarPlus className="size-4" />
-          Add to Schedule
-        </Button>
-        <p className="text-xs text-muted-foreground mt-2">
-          Sign in to add tournaments to your schedule.
-        </p>
-      </div>
+      <AddToScheduleButton tournamentId={tournament.id} />
     </div>
   )
 }
