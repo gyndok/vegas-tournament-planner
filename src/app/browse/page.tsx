@@ -1,16 +1,60 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState, useCallback } from 'react'
 import { useTournamentFilters } from '@/hooks/use-tournament-filters'
 import { useTournaments } from '@/hooks/use-tournaments'
+import { useUser } from '@/hooks/use-user'
+import { UserPreferences } from '@/types'
 import { TournamentFilters } from '@/components/tournament-filters'
 import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RefreshCw } from 'lucide-react'
 
 function BrowseContent() {
-  const { filters, resetFilters } = useTournamentFilters()
+  const { filters, resetFilters, batchSetFilters } = useTournamentFilters()
   const { tournaments, loading, error } = useTournaments(filters)
+  const { user } = useUser()
+  const [prefsMode, setPrefsMode] = useState(false)
+  const [prefsLoading, setPrefsLoading] = useState(false)
+
+  const applyPreferences = useCallback(async () => {
+    setPrefsLoading(true)
+    try {
+      const res = await fetch('/api/preferences')
+      if (!res.ok) return
+      const prefs: UserPreferences | null = await res.json()
+      if (!prefs) return
+
+      const newFilters: Record<string, string | string[] | null> = {}
+
+      if (prefs.buy_in_min != null) newFilters.buyInMin = String(prefs.buy_in_min)
+      if (prefs.buy_in_max != null) newFilters.buyInMax = String(prefs.buy_in_max)
+      if (prefs.preferred_games?.length) newFilters.gameType = prefs.preferred_games
+      if (prefs.preferred_formats?.length) newFilters.format = prefs.preferred_formats
+      if (prefs.preferred_start_time_earliest) newFilters.startTimeFrom = prefs.preferred_start_time_earliest
+      if (prefs.preferred_start_time_latest) newFilters.startTimeTo = prefs.preferred_start_time_latest
+      if (prefs.trip_start) newFilters.dateFrom = prefs.trip_start
+      if (prefs.trip_end) newFilters.dateTo = prefs.trip_end
+      if (prefs.avoid_turbos) newFilters.avoidTurbos = 'true'
+
+      batchSetFilters(newFilters)
+      setPrefsMode(true)
+    } catch {
+      // Silently fail
+    } finally {
+      setPrefsLoading(false)
+    }
+  }, [batchSetFilters])
+
+  const handleTabChange = (value: string) => {
+    if (value === 'preferences') {
+      applyPreferences()
+    } else {
+      resetFilters()
+      setPrefsMode(false)
+    }
+  }
 
   return (
     <div className="flex gap-6 px-4 md:px-6 py-6">
@@ -29,7 +73,23 @@ function BrowseContent() {
               </p>
             )}
           </div>
-          {/* Mobile filter trigger is inside TournamentFilters component */}
+
+          {/* Preferences toggle — only shown when logged in */}
+          {user && (
+            <Tabs
+              value={prefsMode ? 'preferences' : 'all'}
+              onValueChange={handleTabChange}
+            >
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs px-3">
+                  All
+                </TabsTrigger>
+                <TabsTrigger value="preferences" className="text-xs px-3" disabled={prefsLoading}>
+                  {prefsLoading ? 'Loading...' : 'My Preferences'}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </div>
 
         {/* Loading State */}
