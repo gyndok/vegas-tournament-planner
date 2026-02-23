@@ -5,8 +5,238 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Series } from '@/types'
-import { Upload, ChevronDown, ChevronUp, Eye, Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Series, SERIES_COLORS } from '@/types'
+import { getSeriesColor } from '@/lib/utils'
+import { CASINO_CONFIGS } from '@/lib/scraper/casino-configs'
+import type { CasinoConfig } from '@/lib/scraper/types'
+import {
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
+  Globe,
+  XCircle,
+} from 'lucide-react'
+
+// ===== Shared Types =====
+
+interface ImportResult {
+  inserted: number
+  skipped: number
+  errors: string[]
+  series_id?: string
+  error?: string
+  totalScraped?: number
+  totalNormalized?: number
+  message?: string
+  markdownLength?: number
+}
+
+// ===== Tab State =====
+
+type TabId = 'paste' | 'scrape'
+
+// ===== Scrape Casino Tab =====
+
+type ScrapeState = 'idle' | 'loading' | 'success' | 'error'
+
+interface CasinoScrapeState {
+  state: ScrapeState
+  result: ImportResult | null
+}
+
+function ScrapeTab() {
+  const [casinoStates, setCasinoStates] = useState<Record<string, CasinoScrapeState>>(() => {
+    const initial: Record<string, CasinoScrapeState> = {}
+    for (const c of CASINO_CONFIGS) {
+      initial[c.key] = { state: 'idle', result: null }
+    }
+    return initial
+  })
+  const [scrapeAllLoading, setScrapeAllLoading] = useState(false)
+
+  async function handleScrape(casinoKey: string) {
+    setCasinoStates((prev) => ({
+      ...prev,
+      [casinoKey]: { state: 'loading', result: null },
+    }))
+
+    try {
+      const res = await fetch('/api/admin/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ casinoKey }),
+      })
+
+      const json = await res.json()
+
+      setCasinoStates((prev) => ({
+        ...prev,
+        [casinoKey]: {
+          state: json.error && !json.inserted && json.inserted !== 0 ? 'error' : 'success',
+          result: json,
+        },
+      }))
+    } catch {
+      setCasinoStates((prev) => ({
+        ...prev,
+        [casinoKey]: {
+          state: 'error',
+          result: { inserted: 0, skipped: 0, errors: ['Network error'], error: 'Network error' },
+        },
+      }))
+    }
+  }
+
+  async function handleScrapeAll() {
+    setScrapeAllLoading(true)
+    for (const config of CASINO_CONFIGS) {
+      await handleScrape(config.key)
+    }
+    setScrapeAllLoading(false)
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Scrape tournament data from PokerAtlas for each casino. Data is deduplicated — safe to re-run.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {CASINO_CONFIGS.map((config) => (
+          <CasinoCard
+            key={config.key}
+            config={config}
+            scrapeState={casinoStates[config.key]}
+            onScrape={() => handleScrape(config.key)}
+          />
+        ))}
+      </div>
+
+      <div className="flex justify-center pt-2">
+        <Button
+          onClick={handleScrapeAll}
+          disabled={scrapeAllLoading}
+          size="lg"
+          className="gap-2"
+        >
+          {scrapeAllLoading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Scraping All...
+            </>
+          ) : (
+            <>
+              <Globe className="size-4" />
+              Scrape All Casinos
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function CasinoCard({
+  config,
+  scrapeState,
+  onScrape,
+}: {
+  config: CasinoConfig
+  scrapeState: CasinoScrapeState
+  onScrape: () => void
+}) {
+  const colors = getSeriesColor(config.seriesName, config.venue)
+  const { state, result } = scrapeState
+
+  return (
+    <Card className="relative overflow-hidden">
+      <CardContent className="p-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <div className={`size-3 rounded-full shrink-0 ${colors.dot}`} />
+          <span className="font-semibold text-sm">{config.colorKey}</span>
+        </div>
+
+        {/* Series info */}
+        <div>
+          <p className="text-xs text-muted-foreground truncate">{config.seriesName}</p>
+          <p className="text-xs text-muted-foreground">
+            {config.startDate} — {config.endDate}
+          </p>
+        </div>
+
+        {/* Scrape button */}
+        <Button
+          onClick={onScrape}
+          disabled={state === 'loading'}
+          variant={state === 'success' ? 'outline' : 'default'}
+          size="sm"
+          className="w-full gap-2"
+        >
+          {state === 'loading' ? (
+            <>
+              <Loader2 className="size-3 animate-spin" />
+              Scraping...
+            </>
+          ) : state === 'success' ? (
+            <>
+              <CheckCircle className="size-3 text-emerald-600 dark:text-emerald-400" />
+              Re-scrape
+            </>
+          ) : state === 'error' ? (
+            <>
+              <XCircle className="size-3 text-red-500" />
+              Retry
+            </>
+          ) : (
+            <>
+              <Globe className="size-3" />
+              Scrape
+            </>
+          )}
+        </Button>
+
+        {/* Result */}
+        {result && (
+          <div className="text-xs space-y-1">
+            {result.error && !result.inserted && result.inserted !== 0 ? (
+              <p className="text-red-500">{result.error}</p>
+            ) : (
+              <>
+                <div className="flex gap-3">
+                  <span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">{result.inserted}</span>{' '}
+                    <span className="text-muted-foreground">inserted</span>
+                  </span>
+                  <span>
+                    <span className="text-muted-foreground font-medium">{result.skipped}</span>{' '}
+                    <span className="text-muted-foreground">skipped</span>
+                  </span>
+                </div>
+                {result.message && (
+                  <p className="text-muted-foreground">{result.message}</p>
+                )}
+                {result.errors && result.errors.length > 0 && (
+                  <p className="text-yellow-600 dark:text-yellow-400">
+                    {result.errors.length} warning{result.errors.length !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ===== Paste Data Tab (original import functionality) =====
 
 const SAMPLE_JSON = `[
   {
@@ -28,14 +258,6 @@ const SAMPLE_CSV = `event_number,name,date,day_of_week,start_time,buy_in,game_ty
 
 interface PreviewRow {
   [key: string]: unknown
-}
-
-interface ImportResult {
-  inserted: number
-  skipped: number
-  errors: string[]
-  series_id?: string
-  error?: string
 }
 
 function parseCSVLine(line: string): string[] {
@@ -89,7 +311,7 @@ function parseCSVData(raw: string): PreviewRow[] {
   return rows
 }
 
-export default function AdminImportPage() {
+function PasteDataTab() {
   const [seriesList, setSeriesList] = useState<Series[]>([])
   const [selectedSeries, setSelectedSeries] = useState<string>('new')
   const [format, setFormat] = useState<'json' | 'csv'>('json')
@@ -198,17 +420,9 @@ export default function AdminImportPage() {
   const previewHeaders = preview && preview.length > 0 ? Object.keys(preview[0]) : []
 
   return (
-    <div className="px-4 md:px-6 py-6">
-      {/* Warning banner */}
-      <div className="mb-6 flex items-center gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
-        <AlertTriangle className="size-5 text-yellow-500 shrink-0" />
-        <span className="text-sm text-yellow-700 dark:text-yellow-200">Admin area &mdash; data import tool</span>
-      </div>
-
-      <h1 className="text-2xl font-bold mb-8">Import Tournament Data</h1>
-
+    <div className="space-y-6">
       {/* Series Selection */}
-      <section className="mb-8">
+      <section>
         <Label className="text-sm font-medium mb-2 block">Series</Label>
         <select
           value={selectedSeries}
@@ -282,7 +496,7 @@ export default function AdminImportPage() {
       </section>
 
       {/* Format Toggle */}
-      <section className="mb-6">
+      <section>
         <Label className="text-sm font-medium mb-2 block">Format</Label>
         <div className="flex gap-2">
           <Button
@@ -305,7 +519,7 @@ export default function AdminImportPage() {
       </section>
 
       {/* Sample Format Hint */}
-      <section className="mb-6">
+      <section>
         <button
           onClick={() => setShowSample(!showSample)}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -321,7 +535,7 @@ export default function AdminImportPage() {
       </section>
 
       {/* Data Textarea */}
-      <section className="mb-6">
+      <section>
         <Label htmlFor="import-data" className="text-sm font-medium mb-2 block">
           Paste Data
         </Label>
@@ -340,7 +554,7 @@ export default function AdminImportPage() {
       </section>
 
       {/* Action Buttons */}
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3">
         <Button variant="outline" onClick={handlePreview} className="gap-2">
           <Eye className="size-4" />
           Preview
@@ -366,14 +580,14 @@ export default function AdminImportPage() {
 
       {/* Preview Error */}
       {previewError && (
-        <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
           {previewError}
         </div>
       )}
 
       {/* Preview Table */}
       {preview && preview.length > 0 && (
-        <section className="mb-8">
+        <section>
           <h2 className="text-lg font-semibold mb-3">
             Preview ({preview.length} of {data ? '...' : '0'} rows)
           </h2>
@@ -406,9 +620,9 @@ export default function AdminImportPage() {
 
       {/* Import Result */}
       {result && (
-        <section className="mb-8">
+        <section>
           {result.error && !result.inserted && result.inserted !== 0 ? (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
               {result.error}
             </div>
           ) : (
@@ -424,13 +638,13 @@ export default function AdminImportPage() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Skipped:</span>{' '}
-                  <span className="font-semibold text-yellow-400">{result.skipped}</span>
+                  <span className="font-semibold text-yellow-600 dark:text-yellow-400">{result.skipped}</span>
                 </div>
               </div>
               {result.errors && result.errors.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-red-400 mb-1">Errors:</p>
-                  <ul className="list-disc list-inside space-y-1 text-xs text-red-300">
+                  <p className="text-sm font-medium text-red-500 mb-1">Errors:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs text-red-400">
                     {result.errors.map((err, i) => (
                       <li key={i}>{err}</li>
                     ))}
@@ -441,6 +655,51 @@ export default function AdminImportPage() {
           )}
         </section>
       )}
+    </div>
+  )
+}
+
+// ===== Main Page =====
+
+export default function AdminImportPage() {
+  const [activeTab, setActiveTab] = useState<TabId>('scrape')
+
+  return (
+    <div className="px-4 md:px-6 py-6">
+      {/* Warning banner */}
+      <div className="mb-6 flex items-center gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+        <AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+        <span className="text-sm text-yellow-700 dark:text-yellow-200">Admin area &mdash; data import tool</span>
+      </div>
+
+      <h1 className="text-2xl font-bold mb-6">Import Tournament Data</h1>
+
+      {/* Tab switcher */}
+      <div className="flex gap-1 mb-8 border-b border-border">
+        <button
+          onClick={() => setActiveTab('scrape')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'scrape'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Scrape Casino
+        </button>
+        <button
+          onClick={() => setActiveTab('paste')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'paste'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Paste Data
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'scrape' ? <ScrapeTab /> : <PasteDataTab />}
     </div>
   )
 }

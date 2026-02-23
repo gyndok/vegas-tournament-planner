@@ -87,7 +87,7 @@ export function TodaysScheduleWidget() {
             const tournament = entry.tournament
             if (!tournament) return null
             const seriesName = tournament.series?.name ?? ''
-            const colors = getSeriesColor(seriesName)
+            const colors = getSeriesColor(seriesName, tournament.series?.venue)
 
             return (
               <Link

@@ -13,7 +13,7 @@ interface TournamentCardProps {
 
 export function TournamentCard({ tournament }: TournamentCardProps) {
   const seriesName = tournament.series?.name || 'WSOP'
-  const seriesColor = getSeriesColor(seriesName)
+  const seriesColor = getSeriesColor(seriesName, tournament.series?.venue)
 
   return (
     <Link href={`/tournament/${tournament.id}`} className="block group">

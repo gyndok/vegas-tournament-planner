@@ -56,7 +56,7 @@ function formatMessageText(text: string) {
 function TournamentMiniCard({ tournament }: { tournament: ChatMessageType['tournaments'] extends (infer T)[] | undefined ? T : never }) {
   if (!tournament) return null
   const seriesName = tournament.series?.name || 'WSOP'
-  const seriesColor = getSeriesColor(seriesName)
+  const seriesColor = getSeriesColor(seriesName, tournament.series?.venue)
 
   return (
     <Link

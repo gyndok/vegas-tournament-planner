@@ -1,0 +1,320 @@
+/**
+ * Parses PokerAtlas markdown output into structured tournament rows.
+ *
+ * PokerAtlas tournament series pages render as numbered blocks in markdown:
+ *
+ * ```
+ * 01. [May27\\
+ *     \\
+ *     Tuesday5:00pm](https://www.pokeratlas.com/...)
+ *
+ *     Satellite
+ *
+ *     Satellite to Event 1 $1100 Mystery Bounty
+ *
+ *     $160
+ *
+ *     NL Holdem
+ *
+ *     NLH
+ *
+ *     - 20,000 chips
+ *     - 20 min levels
+ *     - $250K Gtd
+ *
+ * 02. [Jun2\\
+ *     ...
+ * ```
+ */
+
+import { RawScrapedRow } from './types'
+
+/**
+ * Parse PokerAtlas markdown into an array of raw scraped rows.
+ * Each tournament block starts with a numbered line like "01. [May27\\"
+ */
+export function parsePokerAtlasMarkdown(
+  markdown: string,
+  year: number
+): { rows: RawScrapedRow[]; errors: string[] } {
+  const rows: RawScrapedRow[] = []
+  const errors: string[] = []
+
+  // Split into tournament blocks by detecting numbered entries: "01. [", "02. [", etc.
+  const blockPattern = /^(\d{1,3})\.\s*\[/m
+  const lines = markdown.split('\n')
+
+  // Find all block start indices
+  const blockStarts: { lineIndex: number; eventNum: string }[] = []
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^(\d{1,3})\.\s*\[/)
+    if (match) {
+      blockStarts.push({ lineIndex: i, eventNum: match[1] })
+    }
+  }
+
+  if (blockStarts.length === 0) {
+    errors.push('No tournament blocks found in markdown')
+    return { rows, errors }
+  }
+
+  // Process each block
+  for (let b = 0; b < blockStarts.length; b++) {
+    const start = blockStarts[b].lineIndex
+    const end = b + 1 < blockStarts.length ? blockStarts[b + 1].lineIndex : lines.length
+    const blockLines = lines.slice(start, end)
+    const blockText = blockLines.join('\n')
+    const eventNum = blockStarts[b].eventNum
+
+    try {
+      const parsed = parseBlock(blockText, eventNum, year)
+      if (parsed) {
+        rows.push(parsed)
+      }
+    } catch (err) {
+      errors.push(
+        `Error parsing event #${eventNum}: ${err instanceof Error ? err.message : 'Unknown error'}`
+      )
+    }
+  }
+
+  return { rows, errors }
+}
+
+/**
+ * Parse a single tournament block into a RawScrapedRow.
+ */
+function parseBlock(
+  blockText: string,
+  eventNum: string,
+  year: number
+): RawScrapedRow | null {
+  // ---- Extract date and time from the link line ----
+  // Pattern: "01. [May27\\\n\\\nTuesday5:00pm](url)"
+  // or: "01. [May27\\\nTuesday5:00pm](url)"
+  const linkMatch = blockText.match(
+    /\d+\.\s*\[((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{1,2})[\s\\]*(?:\n[\s\\]*)*(\w+?)(\d{1,2}:\d{2}\s*(?:am?|pm?))\]\(([^)]+)\)/i
+  )
+
+  if (!linkMatch) {
+    // Try alternate pattern where day of week is separate
+    return parseBlockAlternate(blockText, eventNum, year)
+  }
+
+  const rawDate = linkMatch[1] // e.g. "May27"
+  const rawDayOfWeek = linkMatch[2] // e.g. "Tuesday"
+  const rawTime = linkMatch[3] // e.g. "5:00pm"
+
+  // ---- Extract non-empty content lines after the link ----
+  const contentLines = extractContentLines(blockText)
+
+  // ---- Identify fields from content lines ----
+  const { eventType, eventName, buyIn, gameType, guarantee, details } =
+    identifyFields(contentLines)
+
+  // Skip cancelled events
+  if (eventName.toLowerCase().includes('cancelled') || eventName.toLowerCase().includes('canceled')) {
+    return null
+  }
+
+  return {
+    raw_date: rawDate,
+    raw_time: rawTime,
+    raw_game: gameType,
+    raw_buyin: buyIn,
+    raw_guarantee: guarantee,
+    raw_format: '', // Derived from event name during normalization
+    raw_name: eventName,
+    raw_event_number: eventNum,
+    raw_event_type: eventType,
+  }
+}
+
+/**
+ * Alternate parser for when the primary regex doesn't match.
+ * Handles varied markdown formatting from different PokerAtlas pages.
+ */
+function parseBlockAlternate(
+  blockText: string,
+  eventNum: string,
+  year: number
+): RawScrapedRow | null {
+  // Try to find date anywhere in the first few lines
+  const dateMatch = blockText.match(
+    /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d{1,2})/i
+  )
+  if (!dateMatch) return null
+
+  // Try to find time
+  const timeMatch = blockText.match(/(\d{1,2}:\d{2}\s*(?:am?|pm?))/i)
+  const rawTime = timeMatch ? timeMatch[1] : '12:00pm'
+
+  const contentLines = extractContentLines(blockText)
+  const { eventType, eventName, buyIn, gameType, guarantee } =
+    identifyFields(contentLines)
+
+  if (!eventName && !buyIn) return null
+
+  return {
+    raw_date: dateMatch[1].replace(/\s+/, ''),
+    raw_time: rawTime,
+    raw_game: gameType,
+    raw_buyin: buyIn,
+    raw_guarantee: guarantee,
+    raw_format: '',
+    raw_name: eventName || `Event #${eventNum}`,
+    raw_event_number: eventNum,
+    raw_event_type: eventType,
+  }
+}
+
+/**
+ * Extract meaningful content lines from a block, stripping markdown artifacts.
+ */
+function extractContentLines(blockText: string): string[] {
+  return blockText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => {
+      if (!line) return false
+      // Skip the numbered link line
+      if (/^\d+\.\s*\[/.test(line)) return false
+      // Skip pure markdown artifacts
+      if (line === '\\' || line === '\\\\') return false
+      // Skip lines that are just URLs in parens
+      if (/^\]\(https?:/.test(line)) return false
+      // Skip lines that are just brackets/parens
+      if (/^[\[\]\(\)]+$/.test(line)) return false
+      return true
+    })
+}
+
+/**
+ * Identify tournament fields from the ordered content lines.
+ * PokerAtlas blocks have a predictable structure:
+ *   1. Event type ("Series Event", "Satellite", "Side Event")
+ *   2. Event name/description
+ *   3. Buy-in amount ("$1,100")
+ *   4. Game type full ("NL Holdem")
+ *   5. Game type abbreviated ("NLH")
+ *   6. Details list (- chips, - levels, - guarantee)
+ */
+function identifyFields(lines: string[]): {
+  eventType: string
+  eventName: string
+  buyIn: string
+  gameType: string
+  guarantee: string
+  details: string[]
+} {
+  let eventType = ''
+  let eventName = ''
+  let buyIn = ''
+  let gameType = ''
+  let guarantee = ''
+  const details: string[] = []
+
+  // Known event types
+  const eventTypes = ['series event', 'satellite', 'side event']
+  // Known game types (abbreviated)
+  const gameTypeAbbrevs = [
+    'nlh', 'plo', 'plo8', 'mixed', 'horse', 'stud', 'razz',
+    'o8', 'big o', 'badugi', 'heros', 'torse', 'toe',
+  ]
+
+  let foundEventType = false
+  let foundBuyIn = false
+  let foundGameType = false
+
+  for (const line of lines) {
+    const lower = line.toLowerCase().trim()
+
+    // Check for detail list items (- chips, - levels, - guarantee)
+    if (line.startsWith('- ')) {
+      details.push(line.substring(2).trim())
+      // Check for guarantee in details
+      if (/\$[\d,]+\s*(?:k|m)?\s*(?:gtd|guaranteed)/i.test(line)) {
+        const gMatch = line.match(/(\$[\d,]+\s*(?:k|m)?)\s*(?:gtd|guaranteed)/i)
+        if (gMatch) guarantee = gMatch[1]
+      }
+      continue
+    }
+
+    // Event type
+    if (!foundEventType && eventTypes.includes(lower)) {
+      eventType = line.trim()
+      foundEventType = true
+      continue
+    }
+
+    // Buy-in (line is primarily a dollar amount)
+    if (!foundBuyIn && /^\$[\d,]+$/.test(line.trim())) {
+      buyIn = line.trim()
+      foundBuyIn = true
+      continue
+    }
+
+    // Game type abbreviated (short line matching known abbreviations)
+    if (
+      foundBuyIn &&
+      !foundGameType &&
+      gameTypeAbbrevs.includes(lower)
+    ) {
+      // We already have the full name, use abbreviated
+      gameType = line.trim()
+      foundGameType = true
+      continue
+    }
+
+    // Game type full name (e.g., "NL Holdem", "Pot Limit Omaha")
+    if (
+      foundBuyIn &&
+      !foundGameType &&
+      /(?:holdem|hold'em|omaha|stud|razz|badugi|draw|horse|mixed)/i.test(line)
+    ) {
+      gameType = line.trim()
+      // Don't set foundGameType yet — the next line might be the abbreviated form
+      continue
+    }
+
+    // Guarantee in the event name line (e.g., "$250K Gtd. Mystery Bounty NLH")
+    if (/\$[\d,]+\s*(?:k|m)?\s*gtd/i.test(line)) {
+      const gMatch = line.match(/(\$[\d,]+\s*(?:k|m)?)\s*gtd/i)
+      if (gMatch && !guarantee) guarantee = gMatch[1]
+    }
+
+    // Event name — anything substantive that isn't a known field type
+    if (
+      foundEventType &&
+      !foundBuyIn &&
+      line.trim().length > 2 &&
+      !eventTypes.includes(lower)
+    ) {
+      eventName = line.trim()
+      continue
+    }
+
+    // Catch-all: if we haven't found the event name and it looks like one
+    if (!eventName && line.trim().length > 5 && !line.startsWith('$')) {
+      // Could be the event name if it has meaningful content
+      if (
+        !eventTypes.includes(lower) &&
+        !gameTypeAbbrevs.includes(lower) &&
+        !/^(?:nl holdem|pot limit|seven card)/i.test(lower)
+      ) {
+        eventName = line.trim()
+      }
+    }
+  }
+
+  // If gameType is still a full name like "NL Holdem", that's fine — normalizer handles it
+  if (!gameType && eventName) {
+    // Try to detect game type from event name
+    if (/nlh|hold.?em/i.test(eventName)) gameType = 'NLH'
+    else if (/plo|omaha/i.test(eventName)) gameType = 'PLO'
+    else if (/stud/i.test(eventName)) gameType = 'Stud'
+    else if (/mixed|horse/i.test(eventName)) gameType = 'Mixed'
+  }
+
+  return { eventType, eventName, buyIn, gameType, guarantee, details }
+}
