@@ -22,7 +22,7 @@ export const CASINO_CONFIGS: CasinoConfig[] = [
     seriesName: '2025 Venetian DeepStack Championship',
     venue: 'The Venetian Resort',
     pokerAtlasUrl:
-      'https://www.pokeratlas.com/poker-tournament-series/venetian-deepstack-championship-poker-the-venetian-las-vegas-2025',
+      'https://www.pokeratlas.com/poker-tournament-series/deepstack-championship-2025-venetian-las-vegas-2025',
     fallbackUrl:
       'https://www.venetianlasvegas.com/resort/casino/poker/deepstack-extravaganza-poker-tournament/dscps-2025.html',
     startDate: '2025-05-19',

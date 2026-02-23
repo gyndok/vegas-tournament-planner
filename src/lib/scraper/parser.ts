@@ -104,26 +104,33 @@ function parseBlock(
   const rawDate = linkMatch[1] // e.g. "May27"
   const rawDayOfWeek = linkMatch[2] // e.g. "Tuesday"
   const rawTime = linkMatch[3] // e.g. "5:00pm"
+  const url = linkMatch[4] // e.g. "https://www.pokeratlas.com/poker-tournament/..."
 
   // ---- Extract non-empty content lines after the link ----
   const contentLines = extractContentLines(blockText)
 
   // ---- Identify fields from content lines ----
-  const { eventType, eventName, buyIn, gameType, guarantee, details } =
+  let { eventType, eventName, buyIn, gameType, guarantee, details } =
     identifyFields(contentLines)
+
+  // ---- Fallback: extract buy-in and game type from URL if not found in content ----
+  if (!buyIn || !gameType) {
+    const urlData = extractFromUrl(url)
+    if (!buyIn && urlData.buyIn) buyIn = urlData.buyIn
+    if (!gameType && urlData.gameType) gameType = urlData.gameType
+  }
 
   // Skip cancelled events
   if (eventName.toLowerCase().includes('cancelled') || eventName.toLowerCase().includes('canceled')) {
     return null
   }
 
-  // Skip Day 2 / Restart / Final Table continuation events (no buy-in, not new tournaments)
+  // Skip Day 2 / Restart / Final Table continuation events (not new tournaments)
   const nameLower = eventName.toLowerCase()
   if (
-    (nameLower.includes('day 2') || nameLower.includes('day2') ||
-     nameLower.includes('final table') ||
-     eventType === 'Restart') &&
-    !buyIn
+    nameLower.includes('day 2') || nameLower.includes('day2') ||
+    nameLower.includes('final table') ||
+    eventType === 'Restart'
   ) {
     return null
   }
@@ -161,18 +168,26 @@ function parseBlockAlternate(
   const rawTime = timeMatch ? timeMatch[1] : '12:00pm'
 
   const contentLines = extractContentLines(blockText)
-  const { eventType, eventName, buyIn, gameType, guarantee } =
+  let { eventType, eventName, buyIn, gameType, guarantee } =
     identifyFields(contentLines)
+
+  // ---- Fallback: extract buy-in and game type from URL if not found in content ----
+  const urlMatch = blockText.match(/\(https?:\/\/[^)]+\)/)
+  if (urlMatch && (!buyIn || !gameType)) {
+    const url = urlMatch[0].slice(1, -1) // Remove parens
+    const urlData = extractFromUrl(url)
+    if (!buyIn && urlData.buyIn) buyIn = urlData.buyIn
+    if (!gameType && urlData.gameType) gameType = urlData.gameType
+  }
 
   if (!eventName && !buyIn) return null
 
   // Skip Day 2 / Restart / Final Table continuation events
   const nameLower = (eventName || '').toLowerCase()
   if (
-    (nameLower.includes('day 2') || nameLower.includes('day2') ||
-     nameLower.includes('final table') ||
-     eventType === 'Restart') &&
-    !buyIn
+    nameLower.includes('day 2') || nameLower.includes('day2') ||
+    nameLower.includes('final table') ||
+    eventType === 'Restart'
   ) {
     return null
   }
@@ -188,6 +203,64 @@ function parseBlockAlternate(
     raw_event_number: eventNum,
     raw_event_type: eventType,
   }
+}
+
+/**
+ * Extract buy-in and game type from a PokerAtlas tournament URL.
+ * URL patterns:
+ *   .../{buy_in}-nl-holdem-{event_name}-{venue}?topid=...
+ *   .../{buy_in}-pl-omaha-{event_name}-{venue}?topid=...
+ *   .../{buy_in}-fl-mixed-{event_name}-{venue}?topid=...
+ *
+ * The buy-in is always the last number before the game type slug.
+ */
+function extractFromUrl(url: string): { buyIn: string; gameType: string } {
+  let buyIn = ''
+  let gameType = ''
+
+  try {
+    // Strip query params and get the path
+    const path = url.split('?')[0]
+    const slug = path.split('/').pop() || ''
+
+    // Game type patterns in PokerAtlas URL slugs
+    const gameTypeSlugs: [RegExp, string][] = [
+      [/\b(\d+)-nl-holdem\b/, 'NLH'],
+      [/\b(\d+)-pl-omaha-hi-lo\b/, 'PLO8'],
+      [/\b(\d+)-pl-omaha\b/, 'PLO'],
+      [/\b(\d+)-pl-big-o-hi-lo\b/, 'Big O'],
+      [/\b(\d+)-pl-big-o\b/, 'Big O'],
+      [/\b(\d+)-fl-omaha-8\b/, 'PLO8'],
+      [/\b(\d+)-fl-omaha\b/, 'PLO'],
+      [/\b(\d+)-fl-holdem\b/, "Limit Hold'em"],
+      [/\b(\d+)-fl-mixed\b/, 'Mixed'],
+      [/\b(\d+)-fl-stud\b/, 'Stud'],
+      [/\b(\d+)-fl-razz\b/, 'Razz'],
+      [/\b(\d+)-nl-badugi\b/, 'Badugi'],
+      [/\b(\d+)-mixed\b/, 'Mixed'],
+    ]
+
+    for (const [pattern, game] of gameTypeSlugs) {
+      const match = slug.match(pattern)
+      if (match) {
+        buyIn = `$${match[1]}`
+        gameType = game
+        break
+      }
+    }
+
+    // Fallback: look for any number followed by a game type keyword
+    if (!buyIn) {
+      const fallbackMatch = slug.match(/\b(\d+)-(nl|pl|fl|no-limit|pot-limit|fixed-limit)-/)
+      if (fallbackMatch) {
+        buyIn = `$${fallbackMatch[1]}`
+      }
+    }
+  } catch {
+    // URL parsing failed — return empty
+  }
+
+  return { buyIn, gameType }
 }
 
 /**
