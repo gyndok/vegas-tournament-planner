@@ -48,6 +48,7 @@ export async function PUT(request: Request) {
     avoid_turbos: body.avoid_turbos ?? false,
     trip_start: body.trip_start ?? null,
     trip_end: body.trip_end ?? null,
+    trip_budget: body.trip_budget ?? null,
     updated_at: new Date().toISOString(),
   }
 

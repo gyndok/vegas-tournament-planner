@@ -31,6 +31,7 @@ export default function SettingsPage() {
   const [avoidTurbos, setAvoidTurbos] = useState(false)
   const [tripStart, setTripStart] = useState<string>('')
   const [tripEnd, setTripEnd] = useState<string>('')
+  const [tripBudget, setTripBudget] = useState<string>('')
 
   const loadPreferences = useCallback(async () => {
     try {
@@ -47,6 +48,7 @@ export default function SettingsPage() {
           setAvoidTurbos(data.avoid_turbos ?? false)
           setTripStart(data.trip_start ?? '')
           setTripEnd(data.trip_end ?? '')
+          setTripBudget(data.trip_budget?.toString() ?? '')
         }
       }
     } catch {
@@ -90,6 +92,7 @@ export default function SettingsPage() {
           avoid_turbos: avoidTurbos,
           trip_start: tripStart || null,
           trip_end: tripEnd || null,
+          trip_budget: tripBudget ? Number(tripBudget) : null,
         }),
       })
 
@@ -322,6 +325,20 @@ export default function SettingsPage() {
                 onChange={(e) => setTripEnd(e.target.value)}
               />
             </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="tripBudget">Trip Budget ($)</Label>
+            <Input
+              id="tripBudget"
+              type="number"
+              min="0"
+              placeholder="5000"
+              value={tripBudget}
+              onChange={(e) => setTripBudget(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Set a total buy-in budget for your trip to track spending.
+            </p>
           </div>
         </CardContent>
       </Card>

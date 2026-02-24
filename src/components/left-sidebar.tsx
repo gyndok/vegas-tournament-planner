@@ -16,6 +16,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Shield,
+  Plane,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/browse', label: 'Browse', icon: Search },
   { href: '/schedule', label: 'My Schedule', icon: Calendar },
+  { href: '/trip', label: 'Trip Planner', icon: Plane },
   { href: '/chat', label: 'AI Advisor', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]

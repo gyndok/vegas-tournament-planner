@@ -47,6 +47,7 @@ export interface UserPreferences {
   avoid_turbos: boolean
   trip_start: string | null
   trip_end: string | null
+  trip_budget: number | null
   created_at: string
   updated_at: string
 }
