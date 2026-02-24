@@ -214,6 +214,8 @@ export default async function TournamentDetailPage({
           date: tournament.date,
           buy_in: tournament.buy_in,
           game_type: tournament.game_type,
+          event_number: tournament.event_number,
+          series_id: tournament.series_id,
         }}
       />
     </div>

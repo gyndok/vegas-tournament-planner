@@ -106,6 +106,8 @@ export async function getSimilarTournaments(
     date: string
     buy_in: number
     game_type: string
+    event_number: number
+    series_id: string
   },
   limit: number = 6
 ) {
@@ -126,12 +128,23 @@ export async function getSimilarTournaments(
     .gte('date', new Date().toISOString().split('T')[0])
     .order('date')
     .order('start_time')
-    .limit(limit * 3)  // Fetch extra to score and rank
+    .limit(limit * 5)  // Fetch extra to score, deduplicate, and rank
 
   if (error || !data) return { data: [], error }
 
+  // Exclude flights/variants of the same event:
+  // If a result has the same series_id AND its effective event number
+  // matches ours, it's the same event (just a different flight)
+  const filtered = data.filter(t => {
+    if (t.series_id !== tournament.series_id) return true
+    // Same series — check if it's the same event or a flight of it
+    const tEventNum = t.parent_event_number ?? t.event_number
+    const ourEventNum = tournament.event_number
+    return tEventNum !== ourEventNum
+  })
+
   // Score each by number of matching attributes
-  const scored = data.map(t => {
+  const scored = filtered.map(t => {
     let score = 0
     if (t.date === tournament.date) score += 1
     if (t.buy_in >= buyInMin && t.buy_in <= buyInMax) score += 1
@@ -142,8 +155,19 @@ export async function getSimilarTournaments(
   // Sort by score descending, then by date
   scored.sort((a, b) => b._score - a._score || a.date.localeCompare(b.date))
 
+  // Deduplicate: keep only one entry per (series_id, effective_event_number)
+  // to avoid showing multiple flights of the same tournament
+  const seen = new Set<string>()
+  const deduped = scored.filter(t => {
+    const effectiveEvent = t.parent_event_number ?? t.event_number
+    const key = `${t.series_id}:${effectiveEvent}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
   // Take top N, remove the score field
-  const result = scored.slice(0, limit).map(({ _score, ...rest }) => rest)
+  const result = deduped.slice(0, limit).map(({ _score, ...rest }) => rest)
 
   return { data: result, error: null }
 }

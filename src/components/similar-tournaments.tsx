@@ -9,6 +9,8 @@ interface SimilarTournamentsProps {
     date: string
     buy_in: number
     game_type: string
+    event_number: number
+    series_id: string
   }
 }
 
