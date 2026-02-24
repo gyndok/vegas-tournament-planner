@@ -22,8 +22,8 @@ export function formatDate(date: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function getSeriesColor(seriesName: string, venue?: string) {
-  const searchStr = `${seriesName} ${venue || ''}`.toLowerCase()
+export function getSeriesColor(seriesName: string, venue?: string, tournamentName?: string) {
+  const searchStr = `${seriesName} ${venue || ''} ${tournamentName || ''}`.toLowerCase()
   const key = Object.keys(SERIES_COLORS).find(k =>
     k !== 'default' && searchStr.includes(k.toLowerCase())
   )

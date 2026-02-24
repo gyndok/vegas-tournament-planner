@@ -130,7 +130,7 @@ export function ScheduleView({ entries, onUpdateEntry, onRemoveEntry }: Schedule
                 if (!t) return null
 
                 const hasConflict = conflicts.has(entry.id)
-                const seriesColor = t.series ? getSeriesColor(t.series.name, t.series.venue) : null
+                const seriesColor = getSeriesColor(t.series?.name || '', t.series?.venue, t.name)
                 const priorityConfig = PRIORITY_CONFIG[entry.priority]
 
                 return (

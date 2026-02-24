@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                 <div className="space-y-2">
                   {todaysTournaments.map((t) => {
                     const seriesName = t.series?.name ?? ''
-                    const colors = getSeriesColor(seriesName, t.series?.venue)
+                    const colors = getSeriesColor(seriesName, t.series?.venue, t.name)
                     return (
                       <Link
                         key={t.id}
