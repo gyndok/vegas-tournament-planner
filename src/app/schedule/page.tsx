@@ -53,7 +53,7 @@ export default function SchedulePage() {
       estimated_duration_hours: null,
       notes: null,
       created_at: ct.created_at,
-      series: { id: '', name: ct.venue_name, venue: ct.venue_name },
+      series: { id: '', name: ct.venue_name, venue: ct.venue_name, start_date: '', end_date: '', website_url: null, created_at: ct.created_at },
     },
   }))
 
