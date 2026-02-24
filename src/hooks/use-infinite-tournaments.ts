@@ -28,6 +28,7 @@ function buildSearchParams(filters: TournamentFilters, cursor?: string): URLSear
   if (filters.hasGuarantee) params.set('hasGuarantee', 'true')
   if (filters.guaranteeMin !== undefined) params.set('guaranteeMin', String(filters.guaranteeMin))
   if (filters.guaranteeMax !== undefined) params.set('guaranteeMax', String(filters.guaranteeMax))
+  filters.casinos?.forEach(c => params.append('casino', c))
   params.set('limit', '30')
   if (cursor) params.set('cursor', cursor)
   return params
@@ -46,6 +47,7 @@ export function useInfiniteTournaments(filters: TournamentFilters): UseInfiniteT
   const gameTypes = useMemo(() => JSON.stringify(filters.gameTypes), [filters.gameTypes])
   const formats = useMemo(() => JSON.stringify(filters.formats), [filters.formats])
   const tableSizes = useMemo(() => JSON.stringify(filters.tableSizes), [filters.tableSizes])
+  const casinos = useMemo(() => JSON.stringify(filters.casinos), [filters.casinos])
 
   // Reset and fetch first page when filters change
   useEffect(() => {
@@ -87,7 +89,7 @@ export function useInfiniteTournaments(filters: TournamentFilters): UseInfiniteT
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.dateFrom, filters.dateTo, filters.buyInMin, filters.buyInMax,
-      gameTypes, formats, tableSizes, filters.sortBy,
+      gameTypes, formats, tableSizes, casinos, filters.sortBy,
       filters.startTimeFrom, filters.startTimeTo, filters.avoidTurbos,
       filters.hasGuarantee, filters.guaranteeMin, filters.guaranteeMax])
 
