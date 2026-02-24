@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
 
   const filters: TournamentFilters = {
-    dateFrom: searchParams.get('dateFrom') || undefined,
+    dateFrom: searchParams.get('dateFrom') || new Date().toISOString().split('T')[0],
     dateTo: searchParams.get('dateTo') || undefined,
     seriesIds: searchParams.getAll('seriesId').filter(Boolean),
     buyInMin: searchParams.get('buyInMin') ? Number(searchParams.get('buyInMin')) : undefined,
