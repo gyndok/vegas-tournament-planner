@@ -1,22 +1,42 @@
 'use client'
 
-import { Suspense, useState, useCallback } from 'react'
+import { Suspense, useState, useCallback, useEffect, useRef } from 'react'
 import { useTournamentFilters } from '@/hooks/use-tournament-filters'
-import { useTournaments } from '@/hooks/use-tournaments'
+import { useInfiniteTournaments } from '@/hooks/use-infinite-tournaments'
 import { useUser } from '@/hooks/use-user'
 import { UserPreferences } from '@/types'
 import { TournamentFilters } from '@/components/tournament-filters'
 import { TournamentCard } from '@/components/tournament-card'
+import { TournamentCardSkeleton } from '@/components/tournament-card-skeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RefreshCw } from 'lucide-react'
 
 function BrowseContent() {
   const { filters, resetFilters, batchSetFilters } = useTournamentFilters()
-  const { tournaments, loading, error } = useTournaments(filters)
+  const { tournaments, loading, loadingMore, error, totalCount, hasMore, loadMore } = useInfiniteTournaments(filters)
   const { user } = useUser()
   const [prefsMode, setPrefsMode] = useState(false)
   const [prefsLoading, setPrefsLoading] = useState(false)
+
+  // Intersection Observer for infinite scroll
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, loadingMore, loading, loadMore])
 
   const applyPreferences = useCallback(async () => {
     setPrefsLoading(true)
@@ -69,7 +89,7 @@ function BrowseContent() {
             <h1 className="text-2xl font-bold">Browse Tournaments</h1>
             {!loading && !error && (
               <p className="text-sm text-muted-foreground mt-1">
-                {tournaments.length} tournament{tournaments.length !== 1 ? 's' : ''} found
+                Showing {tournaments.length} of {totalCount} tournament{totalCount !== 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -92,14 +112,11 @@ function BrowseContent() {
           )}
         </div>
 
-        {/* Loading State */}
+        {/* Initial Loading State */}
         {loading && (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-[180px] rounded-lg bg-card border border-border animate-pulse"
-              />
+              <TournamentCardSkeleton key={i} />
             ))}
           </div>
         )}
@@ -129,12 +146,31 @@ function BrowseContent() {
           </div>
         )}
 
-        {/* Results Grid */}
+        {/* Results */}
         {!loading && !error && tournaments.length > 0 && (
           <div className="space-y-3">
             {tournaments.map((tournament) => (
               <TournamentCard key={tournament.id} tournament={tournament} />
             ))}
+
+            {/* Loading more skeletons */}
+            {loadingMore && (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <TournamentCardSkeleton key={`skeleton-${i}`} />
+                ))}
+              </div>
+            )}
+
+            {/* Sentinel for Intersection Observer */}
+            {hasMore && <div ref={sentinelRef} className="h-4" />}
+
+            {/* End of results */}
+            {!hasMore && tournaments.length > 0 && (
+              <p className="text-center text-sm text-muted-foreground py-4">
+                All {totalCount} tournaments loaded
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -152,10 +188,7 @@ export default function BrowsePage() {
             <h1 className="text-2xl font-bold mb-6">Browse Tournaments</h1>
             <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[180px] rounded-lg bg-card border border-border animate-pulse"
-                />
+                <TournamentCardSkeleton key={i} />
               ))}
             </div>
           </div>
