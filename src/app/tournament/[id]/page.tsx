@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Clock, DollarSign, Users, Layers } from 'lucide-react'
 import { AddToScheduleButton } from '@/components/add-to-schedule-button'
+import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
 import { Tournament, Series } from '@/types'
 
@@ -46,12 +47,13 @@ export default async function TournamentDetailPage({
       </Link>
 
       {/* Series badge */}
-      <div>
+      <div className="flex items-center gap-3">
         <span
           className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${seriesColor.bg} ${seriesColor.text}`}
         >
           {seriesColor.label} #{tournament.event_number}
         </span>
+        <FavoriteButton tournamentId={tournament.id} />
       </div>
 
       {/* Event name */}
