@@ -48,6 +48,8 @@ export interface UserPreferences {
   trip_start: string | null
   trip_end: string | null
   trip_budget: number | null
+  share_token: string | null
+  share_enabled: boolean
   created_at: string
   updated_at: string
 }
