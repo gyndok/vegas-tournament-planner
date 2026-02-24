@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowLeft, Clock, DollarSign, Users, Layers } from 'lucide-react'
+import { ArrowLeft, Clock, DollarSign, Users, Layers, ExternalLink } from 'lucide-react'
 import { AddToScheduleButton } from '@/components/add-to-schedule-button'
 import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
@@ -34,6 +34,7 @@ export default async function TournamentDetailPage({
 
   const seriesName = tournament.series?.name || 'Unknown Series'
   const seriesColor = getSeriesColor(seriesName, tournament.series?.venue, tournament.name)
+  const isWsop = `${seriesName} ${tournament.series?.venue || ''} ${tournament.name}`.toLowerCase().includes('wsop')
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
@@ -168,6 +169,19 @@ export default async function TournamentDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* Structure sheet link (WSOP only) */}
+      {isWsop && (
+        <a
+          href="https://wsop.gg-global-cdn.com/wsop/5c0762b2-a033-4bf5-8725-735e3a61c42d.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
+        >
+          <ExternalLink className="size-4" />
+          View WSOP Structure Sheets (PDF)
+        </a>
+      )}
 
       {/* Flight info */}
       {tournament.is_flight && tournament.flight_label && (
