@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     dateFrom: searchParams.get('dateFrom') || new Date().toISOString().split('T')[0],
     dateTo: searchParams.get('dateTo') || undefined,
     seriesIds: searchParams.getAll('seriesId').filter(Boolean),
+    casinos: searchParams.getAll('casino').filter(Boolean),
     buyInMin: searchParams.get('buyInMin') ? Number(searchParams.get('buyInMin')) : undefined,
     buyInMax: searchParams.get('buyInMax') ? Number(searchParams.get('buyInMax')) : undefined,
     gameTypes: searchParams.getAll('gameType').filter(Boolean),

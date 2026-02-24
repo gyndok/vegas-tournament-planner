@@ -11,6 +11,7 @@ export function useTournamentFilters() {
   const filters: TournamentFilters = useMemo(() => ({
     dateFrom: searchParams.get('dateFrom') || undefined,
     dateTo: searchParams.get('dateTo') || undefined,
+    casinos: searchParams.getAll('casino').filter(Boolean),
     buyInMin: searchParams.get('buyInMin') ? Number(searchParams.get('buyInMin')) : undefined,
     buyInMax: searchParams.get('buyInMax') ? Number(searchParams.get('buyInMax')) : undefined,
     gameTypes: searchParams.getAll('gameType').filter(Boolean),
@@ -71,6 +72,7 @@ export function useTournamentFilters() {
     if (filters.tableSizes?.length) count++
     if (filters.startTimeFrom || filters.startTimeTo) count++
     if (filters.avoidTurbos) count++
+    if (filters.casinos?.length) count++
     if (filters.hasGuarantee) count++
     return count
   }, [filters])

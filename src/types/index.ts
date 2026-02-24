@@ -65,6 +65,7 @@ export interface TournamentFilters {
   dateFrom?: string
   dateTo?: string
   seriesIds?: string[]
+  casinos?: string[]
   buyInMin?: number
   buyInMax?: number
   gameTypes?: string[]

@@ -22,6 +22,13 @@ export function buildTournamentQuery(
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
   if (filters.seriesIds?.length) query = query.in('series_id', filters.seriesIds)
+  // Casino name filter — match series name containing casino keyword
+  if (filters.casinos?.length) {
+    const casinoFilters = filters.casinos
+      .map(c => `name.ilike.%${c}%`)
+      .join(',')
+    query = query.or(casinoFilters, { referencedTable: 'series' })
+  }
   if (filters.buyInMin !== undefined) query = query.gte('buy_in', filters.buyInMin)
   if (filters.buyInMax !== undefined) query = query.lte('buy_in', filters.buyInMax)
   if (filters.gameTypes?.length) query = query.in('game_type', filters.gameTypes)
@@ -75,11 +82,18 @@ export function buildCountQuery(
 ) {
   let query = supabase
     .from('tournaments')
-    .select('id', { count: 'exact', head: true })
+    .select('id, series:series_id(name)', { count: 'exact', head: true })
 
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
   if (filters.seriesIds?.length) query = query.in('series_id', filters.seriesIds)
+  // Casino name filter
+  if (filters.casinos?.length) {
+    const casinoFilters = filters.casinos
+      .map(c => `name.ilike.%${c}%`)
+      .join(',')
+    query = query.or(casinoFilters, { referencedTable: 'series' })
+  }
   if (filters.buyInMin !== undefined) query = query.gte('buy_in', filters.buyInMin)
   if (filters.buyInMax !== undefined) query = query.lte('buy_in', filters.buyInMax)
   if (filters.gameTypes?.length) query = query.in('game_type', filters.gameTypes)
