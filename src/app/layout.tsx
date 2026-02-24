@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "NextRebuy — Plan Your Grind",
   description:
     "AI-powered poker tournament scheduling for Las Vegas festivals",
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "NextRebuy — Plan Your Grind",
+    description: "AI-powered poker tournament scheduling for Las Vegas festivals",
+    images: [{ url: "/logo.png", width: 1248, height: 832 }],
+  },
 };
 
 export default function RootLayout({

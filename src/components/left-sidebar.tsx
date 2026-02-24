@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -59,13 +60,16 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
       {/* Branding */}
       <div className={cn('flex items-center h-14 shrink-0 border-b border-sidebar-border', collapsed ? 'justify-center px-2' : 'px-4')}>
         {collapsed ? (
-          <Link href="/" className="text-lg font-bold text-sidebar-primary">
-            N
+          <Link href="/" className="flex items-center justify-center">
+            <Image src="/logo-square.png" alt="NextRebuy" width={32} height={32} className="rounded-full" />
           </Link>
         ) : (
-          <Link href="/" className="flex flex-col">
-            <span className="text-lg font-bold text-sidebar-primary tracking-tight">NextRebuy</span>
-            <span className="text-[10px] text-sidebar-foreground/60 -mt-1">Plan Your Grind</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/logo-square.png" alt="NextRebuy" width={36} height={36} className="rounded-full shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold text-sidebar-primary tracking-tight">NextRebuy</span>
+              <span className="text-[10px] text-sidebar-foreground/60 -mt-1">Plan Your Grind</span>
+            </div>
           </Link>
         )}
       </div>
