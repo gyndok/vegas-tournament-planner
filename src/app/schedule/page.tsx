@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/use-user'
 import { useSchedule } from '@/hooks/use-schedule'
@@ -7,8 +8,9 @@ import { useFavorites } from '@/hooks/use-favorites'
 import { ScheduleCalendar } from '@/components/schedule-calendar'
 import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LogIn, Download, CalendarDays, Heart } from 'lucide-react'
+import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw } from 'lucide-react'
 import { Tournament } from '@/types'
 
 export default function SchedulePage() {
@@ -17,6 +19,67 @@ export default function SchedulePage() {
   const { favorites, loading: favLoading } = useFavorites()
 
   const loading = userLoading || scheduleLoading || favLoading
+
+  const [shareEnabled, setShareEnabled] = useState(false)
+  const [shareToken, setShareToken] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [shareOrigin, setShareOrigin] = useState('')
+
+  // Load sharing state from preferences
+  useEffect(() => {
+    setShareOrigin(window.location.origin)
+    async function loadShareState() {
+      const res = await fetch('/api/preferences')
+      if (res.ok) {
+        const prefs = await res.json()
+        if (prefs) {
+          setShareEnabled(prefs.share_enabled ?? false)
+          setShareToken(prefs.share_token ?? null)
+        }
+      }
+    }
+    if (user) loadShareState()
+  }, [user])
+
+  async function handleShareToggle(enabled: boolean) {
+    setShareEnabled(enabled)
+    // Load current prefs first to avoid overwriting other fields
+    const current = await fetch('/api/preferences')
+    const currentPrefs = current.ok ? await current.json() : {}
+
+    const res = await fetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...currentPrefs, share_enabled: enabled }),
+    })
+    if (res.ok) {
+      const prefs = await res.json()
+      setShareToken(prefs.share_token)
+    }
+  }
+
+  async function handleRegenerateLink() {
+    const current = await fetch('/api/preferences')
+    const currentPrefs = current.ok ? await current.json() : {}
+
+    const res = await fetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...currentPrefs, share_enabled: true, regenerate_token: true }),
+    })
+    if (res.ok) {
+      const prefs = await res.json()
+      setShareToken(prefs.share_token)
+    }
+  }
+
+  function handleCopyLink() {
+    if (!shareToken) return
+    const url = `${shareOrigin}/shared/${shareToken}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   async function handleExport() {
     try {
@@ -73,12 +136,38 @@ export default function SchedulePage() {
           <h1 className="text-2xl font-bold">My Schedule</h1>
         </div>
 
-        {entries.length > 0 && (
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="size-4 mr-2" />
-            Export .ics
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {entries.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="size-4 mr-2" />
+              Export .ics
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Share controls */}
+      <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/30">
+        <Share2 className="size-4 text-muted-foreground shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Share my schedule</span>
+            <Switch checked={shareEnabled} onCheckedChange={handleShareToggle} />
+          </div>
+          {shareEnabled && shareToken && (
+            <div className="flex items-center gap-2 mt-2">
+              <code className="text-xs bg-muted px-2 py-1 rounded truncate block flex-1">
+                {shareOrigin}/shared/{shareToken}
+              </code>
+              <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2" onClick={handleCopyLink}>
+                {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+              </Button>
+              <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2 text-muted-foreground" onClick={handleRegenerateLink} title="Generate new link">
+                <RefreshCw className="size-3.5" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
