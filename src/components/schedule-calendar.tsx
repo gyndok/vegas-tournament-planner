@@ -49,18 +49,22 @@ function getConflicts(entries: UserScheduleEntry[]): Set<string> {
 
 interface ScheduleCalendarProps {
   entries: UserScheduleEntry[]
-  onUpdateEntry: (entryId: string, updates: { priority?: 'target' | 'backup' | 'maybe' }) => Promise<void>
-  onRemoveEntry: (entryId: string) => Promise<void>
+  onUpdateEntry?: (entryId: string, updates: { priority?: 'target' | 'backup' | 'maybe' }) => Promise<void>
+  onRemoveEntry?: (entryId: string) => Promise<void>
+  readOnly?: boolean
 }
 
 export function ScheduleCalendar({
   entries,
   onUpdateEntry,
   onRemoveEntry,
+  readOnly = false,
 }: ScheduleCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const conflicts = useMemo(() => getConflicts(entries), [entries])
+  const handleUpdate = onUpdateEntry ?? (async () => {})
+  const handleRemove = onRemoveEntry ?? (async () => {})
 
   function handlePrev() {
     if (viewMode === 'list') return
@@ -126,8 +130,8 @@ export function ScheduleCalendar({
           currentDate={currentDate}
           entries={entries}
           conflicts={conflicts}
-          onUpdateEntry={onUpdateEntry}
-          onRemoveEntry={onRemoveEntry}
+          onUpdateEntry={handleUpdate}
+          onRemoveEntry={handleRemove}
           onDayClick={handleDayClick}
         />
       )}
@@ -137,8 +141,8 @@ export function ScheduleCalendar({
           currentDate={currentDate}
           entries={entries}
           conflicts={conflicts}
-          onUpdateEntry={onUpdateEntry}
-          onRemoveEntry={onRemoveEntry}
+          onUpdateEntry={handleUpdate}
+          onRemoveEntry={handleRemove}
         />
       )}
 
@@ -147,16 +151,16 @@ export function ScheduleCalendar({
           currentDate={currentDate}
           entries={entries}
           conflicts={conflicts}
-          onUpdateEntry={onUpdateEntry}
-          onRemoveEntry={onRemoveEntry}
+          onUpdateEntry={handleUpdate}
+          onRemoveEntry={handleRemove}
         />
       )}
 
       {viewMode === 'list' && (
         <ScheduleView
           entries={entries}
-          onUpdateEntry={onUpdateEntry}
-          onRemoveEntry={onRemoveEntry}
+          onUpdateEntry={handleUpdate}
+          onRemoveEntry={handleRemove}
         />
       )}
     </div>

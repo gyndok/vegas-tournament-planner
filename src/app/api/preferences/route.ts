@@ -36,7 +36,7 @@ export async function PUT(request: Request) {
 
   const body = await request.json()
 
-  const preferences = {
+  const preferences: Record<string, unknown> = {
     user_id: user.id,
     buy_in_min: body.buy_in_min ?? null,
     buy_in_max: body.buy_in_max ?? null,
@@ -49,7 +49,26 @@ export async function PUT(request: Request) {
     trip_start: body.trip_start ?? null,
     trip_end: body.trip_end ?? null,
     trip_budget: body.trip_budget ?? null,
+    share_enabled: body.share_enabled ?? false,
     updated_at: new Date().toISOString(),
+  }
+
+  // Generate share token if enabling sharing for the first time
+  if (body.share_enabled) {
+    const { data: existing } = await supabase
+      .from('user_preferences')
+      .select('share_token')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!existing?.share_token) {
+      preferences.share_token = crypto.randomUUID()
+    }
+  }
+
+  // Regenerate share token if requested
+  if (body.regenerate_token) {
+    preferences.share_token = crypto.randomUUID()
   }
 
   const { data, error } = await supabase
