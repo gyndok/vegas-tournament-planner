@@ -94,7 +94,7 @@ function BrowseContent() {
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
@@ -131,7 +131,7 @@ function BrowseContent() {
 
         {/* Results Grid */}
         {!loading && !error && tournaments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
             {tournaments.map((tournament) => (
               <TournamentCard key={tournament.id} tournament={tournament} />
             ))}
@@ -150,7 +150,7 @@ export default function BrowsePage() {
           <div className="hidden md:block w-[280px] shrink-0" />
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">Browse Tournaments</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}

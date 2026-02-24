@@ -89,13 +89,13 @@ export interface ChatMessage {
   timestamp: Date
 }
 
-export const SERIES_COLORS: Record<string, { bg: string; text: string; label: string; dot: string }> = {
-  WSOP: { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400', label: 'WSOP', dot: 'bg-amber-500' },
-  Venetian: { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-400', label: 'Venetian', dot: 'bg-red-500' },
-  Wynn: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', label: 'Wynn', dot: 'bg-emerald-500' },
-  Aria: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', label: 'Aria', dot: 'bg-blue-500' },
-  'Golden Nugget': { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-400', label: 'Golden Nugget', dot: 'bg-orange-500' },
-  MGM: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', label: 'MGM Grand', dot: 'bg-purple-500' },
-  Orleans: { bg: 'bg-cyan-100 dark:bg-cyan-500/20', text: 'text-cyan-700 dark:text-cyan-400', label: 'Orleans', dot: 'bg-cyan-500' },
-  default: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Other', dot: 'bg-gray-400' },
+export const SERIES_COLORS: Record<string, { bg: string; text: string; label: string; dot: string; border: string }> = {
+  WSOP: { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400', label: 'WSOP', dot: 'bg-amber-500', border: 'border-l-amber-500' },
+  Venetian: { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-400', label: 'Venetian', dot: 'bg-red-500', border: 'border-l-red-500' },
+  Wynn: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', label: 'Wynn', dot: 'bg-emerald-500', border: 'border-l-emerald-500' },
+  Aria: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', label: 'Aria', dot: 'bg-blue-500', border: 'border-l-blue-500' },
+  'Golden Nugget': { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-400', label: 'Golden Nugget', dot: 'bg-orange-500', border: 'border-l-orange-500' },
+  MGM: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', label: 'MGM Grand', dot: 'bg-purple-500', border: 'border-l-purple-500' },
+  Orleans: { bg: 'bg-cyan-100 dark:bg-cyan-500/20', text: 'text-cyan-700 dark:text-cyan-400', label: 'Orleans', dot: 'bg-cyan-500', border: 'border-l-cyan-500' },
+  default: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Other', dot: 'bg-gray-400', border: 'border-l-gray-400' },
 }

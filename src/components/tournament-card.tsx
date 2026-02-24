@@ -17,7 +17,7 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
 
   return (
     <Link href={`/tournament/${tournament.id}`} className="block group">
-      <Card className="border-border bg-card py-0 gap-0 transition-colors hover:bg-accent group-focus-visible:ring-2 group-focus-visible:ring-primary">
+      <Card className={`border-border bg-card py-0 gap-0 transition-colors hover:bg-accent group-focus-visible:ring-2 group-focus-visible:ring-primary border-l-4 ${seriesColor.border}`}>
         <CardContent className="p-4 space-y-3">
           {/* Top row: Series badge + Event number + Quick add */}
           <div className="flex items-center justify-between">
