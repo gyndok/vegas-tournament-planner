@@ -163,21 +163,21 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
       {/* Bottom section */}
       <div className={cn('shrink-0 border-t border-sidebar-border', collapsed ? 'px-2 py-2' : 'px-3 py-3')}>
         <div className="space-y-1">
-          {/* Help */}
+          {/* Help / FAQ */}
           {collapsed ? (
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <button className="flex w-full items-center justify-center rounded-lg p-2.5 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
+                <Link href="/faq" className="flex w-full items-center justify-center rounded-lg p-2.5 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
                   <HelpCircle className="size-5" />
-                </button>
+                </Link>
               </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={8}>Help</TooltipContent>
+              <TooltipContent side="right" sideOffset={8}>Help & FAQ</TooltipContent>
             </Tooltip>
           ) : (
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
+            <Link href="/faq" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
               <HelpCircle className="size-5" />
-              <span>Help</span>
-            </button>
+              <span>Help & FAQ</span>
+            </Link>
           )}
 
           {/* Auth action */}
