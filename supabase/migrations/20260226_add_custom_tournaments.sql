@@ -1,6 +1,6 @@
 -- Custom tournaments table
 CREATE TABLE custom_tournaments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_by UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   status TEXT NOT NULL DEFAULT 'draft',
   is_public BOOLEAN DEFAULT FALSE,
