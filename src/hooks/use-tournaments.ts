@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
-import { Tournament, TournamentFilters } from '@/types'
+import { Tournament, TournamentFilters, PaginatedTournamentsResponse } from '@/types'
 
 export function useTournaments(filters: TournamentFilters) {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
@@ -38,9 +38,9 @@ export function useTournaments(filters: TournamentFilters) {
           signal: controller.signal,
         })
         if (!res.ok) throw new Error('Failed to load')
-        const data = await res.json()
+        const result: PaginatedTournamentsResponse = await res.json()
         if (!controller.signal.aborted) {
-          setTournaments(data)
+          setTournaments(result.data)
           setError(null)
         }
       } catch (e) {
