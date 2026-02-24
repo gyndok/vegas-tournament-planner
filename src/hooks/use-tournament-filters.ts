@@ -56,6 +56,12 @@ export function useTournamentFilters() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }, [router, pathname])
 
+  const removeFilters = useCallback((keys: string[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    keys.forEach(k => params.delete(k))
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [searchParams, router, pathname])
+
   const filterCount = useMemo(() => {
     let count = 0
     if (filters.dateFrom || filters.dateTo) count++
@@ -69,5 +75,5 @@ export function useTournamentFilters() {
     return count
   }, [filters])
 
-  return { filters, setFilter, resetFilters, filterCount, batchSetFilters }
+  return { filters, setFilter, removeFilters, resetFilters, filterCount, batchSetFilters }
 }

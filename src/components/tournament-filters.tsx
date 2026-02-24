@@ -30,7 +30,7 @@ function formatDateParam(date: Date): string {
 }
 
 function FilterSections() {
-  const { filters, setFilter, resetFilters, filterCount } = useTournamentFilters()
+  const { filters, setFilter, removeFilters, resetFilters, filterCount } = useTournamentFilters()
 
   const handleDateQuickPick = (type: 'today' | 'tomorrow' | 'week') => {
     const today = new Date()
@@ -250,10 +250,10 @@ function FilterSections() {
             type="checkbox"
             checked={filters.hasGuarantee || false}
             onChange={(e) => {
-              setFilter('hasGuarantee', e.target.checked ? 'true' : null)
-              if (!e.target.checked) {
-                setTimeout(() => setFilter('guaranteeMin', null), 0)
-                setTimeout(() => setFilter('guaranteeMax', null), 10)
+              if (e.target.checked) {
+                setFilter('hasGuarantee', 'true')
+              } else {
+                removeFilters(['hasGuarantee', 'guaranteeMin', 'guaranteeMax'])
               }
             }}
             className="h-4 w-4 rounded border-gray-600 bg-transparent text-primary focus:ring-primary focus:ring-offset-0"
