@@ -64,6 +64,27 @@ export interface UserScheduleEntry {
   tournament?: Tournament
 }
 
+export interface CustomTournament {
+  id: string
+  created_by: string
+  status: 'draft' | 'pending' | 'approved' | 'rejected'
+  is_public: boolean
+  approved_tournament_id: string | null
+
+  name: string
+  date: string
+  day_of_week: string
+  start_time: string
+  buy_in: number
+  game_type: string
+  format: string
+  table_size: number
+  venue_name: string
+  guaranteed_prize: number | null
+  notes: string | null
+  created_at: string
+}
+
 export interface TournamentFilters {
   dateFrom?: string
   dateTo?: string
