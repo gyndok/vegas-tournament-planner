@@ -15,9 +15,13 @@ export function buildTournamentQuery(
   supabase: SupabaseClient,
   filters: TournamentFilters
 ) {
+  // Use !inner join when casino filter is active so unmatched tournaments are excluded
+  const seriesJoin = filters.casinos?.length
+    ? 'series:series_id!inner(id, name, venue)'
+    : 'series:series_id(id, name, venue)'
   let query = supabase
     .from('tournaments')
-    .select('*, series:series_id(id, name, venue)')
+    .select(`*, ${seriesJoin}`)
 
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
@@ -80,9 +84,13 @@ export function buildCountQuery(
   supabase: SupabaseClient,
   filters: TournamentFilters
 ) {
+  // Use !inner join when casino filter is active so count excludes unmatched tournaments
+  const seriesJoin = filters.casinos?.length
+    ? 'series:series_id!inner(name)'
+    : 'series:series_id(name)'
   let query = supabase
     .from('tournaments')
-    .select('id, series:series_id(name)', { count: 'exact', head: true })
+    .select(`id, ${seriesJoin}`, { count: 'exact', head: true })
 
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
