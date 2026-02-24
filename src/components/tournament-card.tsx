@@ -5,6 +5,7 @@ import { Tournament } from '@/types'
 import { getSeriesColor, formatBuyIn, formatTime, formatDate } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { FavoriteButton } from '@/components/favorite-button'
 import { QuickAddButton } from '@/components/quick-add-button'
 
 interface TournamentCardProps {
@@ -30,6 +31,7 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
               <span className="text-xs text-muted-foreground">
                 #{tournament.event_number}
               </span>
+              <FavoriteButton tournamentId={tournament.id} />
               <QuickAddButton tournamentId={tournament.id} />
             </div>
           </div>
