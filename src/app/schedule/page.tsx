@@ -5,20 +5,66 @@ import Link from 'next/link'
 import { useUser } from '@/hooks/use-user'
 import { useSchedule } from '@/hooks/use-schedule'
 import { useFavorites } from '@/hooks/use-favorites'
+import { useCustomTournaments } from '@/hooks/use-custom-tournaments'
 import { ScheduleCalendar } from '@/components/schedule-calendar'
 import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw } from 'lucide-react'
-import { Tournament } from '@/types'
+import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus } from 'lucide-react'
+import { Tournament, CustomTournament, UserScheduleEntry } from '@/types'
 
 export default function SchedulePage() {
   const { user, loading: userLoading } = useUser()
   const { entries, loading: scheduleLoading, error, updateEntry, removeFromSchedule } = useSchedule()
   const { favorites, loading: favLoading } = useFavorites()
+  const { customTournaments, loading: customLoading } = useCustomTournaments()
 
-  const loading = userLoading || scheduleLoading || favLoading
+  const loading = userLoading || scheduleLoading || favLoading || customLoading
+
+  // Convert custom tournaments to schedule entry format for unified display
+  const customEntries: UserScheduleEntry[] = customTournaments.map((ct) => ({
+    id: `custom-${ct.id}`,
+    user_id: ct.created_by,
+    tournament_id: ct.id,
+    priority: 'target' as const,
+    notes: ct.notes,
+    created_at: ct.created_at,
+    tournament: {
+      id: ct.id,
+      series_id: '',
+      event_number: 0,
+      name: ct.name,
+      date: ct.date,
+      day_of_week: ct.day_of_week,
+      start_time: ct.start_time,
+      buy_in: ct.buy_in,
+      game_type: ct.game_type,
+      format: ct.format,
+      table_size: ct.table_size,
+      starting_stack: null,
+      blind_levels_minutes: null,
+      late_reg_levels: null,
+      late_reg_end_time: null,
+      guaranteed_prize: ct.guaranteed_prize,
+      is_flight: false,
+      flight_label: null,
+      parent_event_number: null,
+      estimated_duration_hours: null,
+      notes: null,
+      created_at: ct.created_at,
+      series: { id: '', name: ct.venue_name, venue: ct.venue_name },
+    },
+  }))
+
+  const allEntries = [...entries, ...customEntries].sort((a, b) => {
+    const dateA = a.tournament?.date ?? ''
+    const dateB = b.tournament?.date ?? ''
+    if (dateA !== dateB) return dateA.localeCompare(dateB)
+    const timeA = a.tournament?.start_time ?? ''
+    const timeB = b.tournament?.start_time ?? ''
+    return timeA.localeCompare(timeB)
+  })
 
   const [shareEnabled, setShareEnabled] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
@@ -137,7 +183,13 @@ export default function SchedulePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {entries.length > 0 && (
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/custom/new">
+              <Plus className="size-4 mr-2" />
+              Add Tournament
+            </Link>
+          </Button>
+          {allEntries.length > 0 && (
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="size-4 mr-2" />
               Export .ics
@@ -181,8 +233,8 @@ export default function SchedulePage() {
           <TabsTrigger value="schedule" className="gap-2">
             <CalendarDays className="size-4" />
             Schedule
-            {entries.length > 0 && (
-              <span className="text-xs text-muted-foreground">({entries.length})</span>
+            {allEntries.length > 0 && (
+              <span className="text-xs text-muted-foreground">({allEntries.length})</span>
             )}
           </TabsTrigger>
           <TabsTrigger value="favorites" className="gap-2">
@@ -196,7 +248,7 @@ export default function SchedulePage() {
 
         <TabsContent value="schedule">
           <ScheduleCalendar
-            entries={entries}
+            entries={allEntries}
             onUpdateEntry={updateEntry}
             onRemoveEntry={removeFromSchedule}
           />
