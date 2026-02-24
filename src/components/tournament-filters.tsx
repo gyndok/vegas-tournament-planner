@@ -354,7 +354,7 @@ export function TournamentFilters() {
     <>
       {/* Desktop sidebar - hidden on mobile */}
       <aside className="hidden md:block w-[280px] shrink-0">
-        <div className="sticky top-20 space-y-2">
+        <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-2 pr-2">
           <h3 className="text-sm font-semibold text-foreground px-1">Filters</h3>
           <FilterSections />
         </div>
