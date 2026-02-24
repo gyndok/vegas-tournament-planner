@@ -78,7 +78,13 @@ export interface TournamentFilters {
   guaranteeMax?: number
   sortBy?: 'date' | 'buy_in_asc' | 'buy_in_desc' | 'guarantee_desc'
   limit?: number
-  offset?: number
+  cursor?: string  // base64-encoded cursor for pagination
+}
+
+export interface PaginatedTournamentsResponse {
+  data: Tournament[]
+  nextCursor: string | null
+  totalCount: number
 }
 
 export interface ChatMessage {
