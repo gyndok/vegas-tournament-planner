@@ -1,6 +1,7 @@
 'use client'
 
 import { useTournamentFilters } from '@/hooks/use-tournament-filters'
+import { SERIES_COLORS } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -75,6 +76,16 @@ function FilterSections() {
     setFilter('format', next.length > 0 ? next : null)
   }
 
+  const CASINO_KEYS = Object.keys(SERIES_COLORS).filter(k => k !== 'default')
+
+  const toggleCasino = (casino: string) => {
+    const current = filters.casinos || []
+    const next = current.includes(casino)
+      ? current.filter(c => c !== casino)
+      : [...current, casino]
+    setFilter('casino', next.length > 0 ? next : null)
+  }
+
   const handleSortChange = (value: string) => {
     setFilter('sortBy', value === 'date' ? null : value)
   }
@@ -93,6 +104,32 @@ function FilterSections() {
           Clear all filters ({filterCount})
         </Button>
       )}
+
+      {/* Casino */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Casino</h4>
+        <div className="flex flex-wrap gap-1.5">
+          {CASINO_KEYS.map((casino) => {
+            const colors = SERIES_COLORS[casino]
+            const isSelected = (filters.casinos || []).includes(casino)
+            return (
+              <Badge
+                key={casino}
+                variant="outline"
+                className={`cursor-pointer text-xs select-none transition-colors ${
+                  isSelected
+                    ? `${colors.bg} ${colors.text} border-transparent`
+                    : 'hover:bg-muted'
+                }`}
+                onClick={() => toggleCasino(casino)}
+              >
+                <span className={`inline-block size-2 rounded-full mr-1.5 ${colors.dot}`} />
+                {colors.label}
+              </Badge>
+            )
+          })}
+        </div>
+      </div>
 
       {/* Date Quick Picks */}
       <div className="space-y-3">
