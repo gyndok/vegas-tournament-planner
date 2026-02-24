@@ -3,15 +3,20 @@
 import Link from 'next/link'
 import { useUser } from '@/hooks/use-user'
 import { useSchedule } from '@/hooks/use-schedule'
+import { useFavorites } from '@/hooks/use-favorites'
 import { ScheduleCalendar } from '@/components/schedule-calendar'
+import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
-import { LogIn, Download, CalendarDays } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { LogIn, Download, CalendarDays, Heart } from 'lucide-react'
+import { Tournament } from '@/types'
 
 export default function SchedulePage() {
   const { user, loading: userLoading } = useUser()
   const { entries, loading: scheduleLoading, error, updateEntry, removeFromSchedule } = useSchedule()
+  const { favorites, loading: favLoading } = useFavorites()
 
-  const loading = userLoading || scheduleLoading
+  const loading = userLoading || scheduleLoading || favLoading
 
   async function handleExport() {
     try {
@@ -65,14 +70,7 @@ export default function SchedulePage() {
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            My Schedule
-            {entries.length > 0 && (
-              <span className="text-base font-normal text-muted-foreground">
-                ({entries.length} tournament{entries.length !== 1 ? 's' : ''})
-              </span>
-            )}
-          </h1>
+          <h1 className="text-2xl font-bold">My Schedule</h1>
         </div>
 
         {entries.length > 0 && (
@@ -89,11 +87,58 @@ export default function SchedulePage() {
         </div>
       )}
 
-      <ScheduleCalendar
-        entries={entries}
-        onUpdateEntry={updateEntry}
-        onRemoveEntry={removeFromSchedule}
-      />
+      <Tabs defaultValue="schedule" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="schedule" className="gap-2">
+            <CalendarDays className="size-4" />
+            Schedule
+            {entries.length > 0 && (
+              <span className="text-xs text-muted-foreground">({entries.length})</span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="favorites" className="gap-2">
+            <Heart className="size-4" />
+            Favorites
+            {favorites.length > 0 && (
+              <span className="text-xs text-muted-foreground">({favorites.length})</span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="schedule">
+          <ScheduleCalendar
+            entries={entries}
+            onUpdateEntry={updateEntry}
+            onRemoveEntry={removeFromSchedule}
+          />
+        </TabsContent>
+
+        <TabsContent value="favorites">
+          {favorites.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Heart className="size-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">No favorites yet</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Tap the heart icon on any tournament to save it here.
+              </p>
+              <Button asChild variant="outline" className="mt-4">
+                <Link href="/browse">Browse Tournaments</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {favorites.map((fav) => (
+                fav.tournament && (
+                  <TournamentCard
+                    key={fav.id}
+                    tournament={fav.tournament as Tournament}
+                  />
+                )
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
