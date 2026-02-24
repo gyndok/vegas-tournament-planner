@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Clock, DollarSign, Users, Layers } from 'lucide-react'
 import { AddToScheduleButton } from '@/components/add-to-schedule-button'
+import { SimilarTournaments } from '@/components/similar-tournaments'
 import { Tournament, Series } from '@/types'
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
@@ -203,6 +204,16 @@ export default async function TournamentDetailPage({
 
       {/* Add to Schedule button */}
       <AddToScheduleButton tournamentId={tournament.id} />
+
+      {/* Similar Tournaments */}
+      <SimilarTournaments
+        tournament={{
+          id: tournament.id,
+          date: tournament.date,
+          buy_in: tournament.buy_in,
+          game_type: tournament.game_type,
+        }}
+      />
     </div>
   )
 }
