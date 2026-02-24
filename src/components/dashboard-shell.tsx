@@ -6,6 +6,8 @@ import { LeftSidebar } from '@/components/left-sidebar'
 import { TopHeader } from '@/components/top-header'
 import { RightSidebar } from '@/components/right-sidebar'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
+import { ServiceWorkerRegistration } from '@/components/sw-registration'
+import { InstallPrompt } from '@/components/install-prompt'
 
 interface DashboardShellProps {
   children: ReactNode
@@ -14,6 +16,7 @@ interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <SidebarProvider>
+      <ServiceWorkerRegistration />
       <div className="flex h-screen overflow-hidden">
         {/* Left sidebar */}
         <LeftSidebar />
@@ -38,6 +41,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       {/* Mobile bottom nav */}
       <MobileBottomNav />
+      <InstallPrompt />
     </SidebarProvider>
   )
 }

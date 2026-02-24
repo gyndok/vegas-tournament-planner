@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus } from 'lucide-react'
+import { OfflineIndicator } from '@/components/offline-indicator'
 import { Tournament, CustomTournament, UserScheduleEntry } from '@/types'
 
 export default function SchedulePage() {
@@ -177,6 +178,7 @@ export default function SchedulePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      <OfflineIndicator />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">My Schedule</h1>
