@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useUser } from '@/hooks/use-user'
 import { useSchedule } from '@/hooks/use-schedule'
-import { ScheduleView } from '@/components/schedule-view'
+import { ScheduleCalendar } from '@/components/schedule-calendar'
 import { Button } from '@/components/ui/button'
 import { LogIn, Download, CalendarDays } from 'lucide-react'
 
@@ -62,7 +62,7 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -89,7 +89,7 @@ export default function SchedulePage() {
         </div>
       )}
 
-      <ScheduleView
+      <ScheduleCalendar
         entries={entries}
         onUpdateEntry={updateEntry}
         onRemoveEntry={removeFromSchedule}
