@@ -64,6 +64,16 @@ export interface UserScheduleEntry {
   tournament?: Tournament
 }
 
+export interface TournamentResult {
+  id: string
+  user_id: string
+  schedule_entry_id: string
+  result_amount: number
+  finish_position: number | null
+  notes: string | null
+  created_at: string
+}
+
 export interface CustomTournament {
   id: string
   created_by: string
