@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/use-user'
 import { useSchedule } from '@/hooks/use-schedule'
+import { useResults } from '@/hooks/use-results'
 import { Tournament, UserPreferences } from '@/types'
 import { TripDayCard } from '@/components/trip-day-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatBuyIn } from '@/lib/utils'
-import { Plane, LogIn, Settings, CalendarDays, Loader2 } from 'lucide-react'
+import { Plane, LogIn, Settings, CalendarDays, Loader2, Trophy } from 'lucide-react'
 
 function formatDateDisplay(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
@@ -41,6 +42,7 @@ function getDaysBetween(start: string, end: string): string[] {
 export default function TripPage() {
   const { user, loading: userLoading } = useUser()
   const { entries, loading: scheduleLoading, addToSchedule, removeFromSchedule } = useSchedule()
+  const { results, loading: resultsLoading, createResult, updateResult, deleteResult, getResultForEntry } = useResults()
   const [prefs, setPrefs] = useState<UserPreferences | null>(null)
   const [prefsLoading, setPrefsLoading] = useState(true)
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([])
@@ -128,12 +130,47 @@ export default function TripPage() {
   const budgetPercent = tripBudget ? Math.min((totalCommitted / tripBudget) * 100, 100) : 0
   const budgetColor = budgetPercent >= 90 ? 'bg-red-500' : budgetPercent >= 70 ? 'bg-yellow-500' : 'bg-emerald-500'
 
+  // Results computation
+  const tripResults = useMemo(() => {
+    const tripEntryIds = new Set(tripEntries.map(e => e.id))
+    return results.filter(r => tripEntryIds.has(r.schedule_entry_id))
+  }, [results, tripEntries])
+
+  const totalBuyInsPlayed = useMemo(
+    () => tripResults.reduce((sum, r) => {
+      const entry = tripEntries.find(e => e.id === r.schedule_entry_id)
+      return sum + (entry?.tournament?.buy_in ?? 0)
+    }, 0),
+    [tripResults, tripEntries]
+  )
+
+  const totalCashOut = useMemo(
+    () => tripResults.reduce((sum, r) => sum + r.result_amount, 0),
+    [tripResults]
+  )
+
+  const netPL = totalCashOut - totalBuyInsPlayed
+  const roi = totalBuyInsPlayed > 0 ? ((netPL / totalBuyInsPlayed) * 100) : 0
+
   // Quick add handler
   const handleQuickAdd = useCallback(async (tournamentId: string) => {
     await addToSchedule(tournamentId, 'target')
   }, [addToSchedule])
 
-  const loading = userLoading || prefsLoading || scheduleLoading
+  // Result handlers
+  const handleLogResult = useCallback(async (scheduleEntryId: string, data: { result_amount: number; finish_position?: number | null; notes?: string | null }) => {
+    await createResult({ schedule_entry_id: scheduleEntryId, ...data })
+  }, [createResult])
+
+  const handleUpdateResult = useCallback(async (resultId: string, data: { result_amount?: number; finish_position?: number | null; notes?: string | null }) => {
+    await updateResult(resultId, data)
+  }, [updateResult])
+
+  const handleDeleteResult = useCallback(async (resultId: string) => {
+    await deleteResult(resultId)
+  }, [deleteResult])
+
+  const loading = userLoading || prefsLoading || scheduleLoading || resultsLoading
 
   if (loading) {
     return (
@@ -242,6 +279,34 @@ export default function TripPage() {
         )}
       </div>
 
+      {/* Results Summary */}
+      {tripResults.length > 0 && (
+        <div className="rounded-lg border bg-card p-4">
+          <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
+            <Trophy className="size-4 text-primary" />
+            Results
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className={`text-xl font-bold ${netPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                {netPL >= 0 ? '+' : ''}{formatBuyIn(netPL)}
+              </p>
+              <p className="text-xs text-muted-foreground">Net P&L</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xl font-bold">{tripResults.length}/{tripEntries.length}</p>
+              <p className="text-xs text-muted-foreground">Played</p>
+            </div>
+            <div className="text-center">
+              <p className={`text-xl font-bold ${roi >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                {roi >= 0 ? '+' : ''}{roi.toFixed(0)}%
+              </p>
+              <p className="text-xs text-muted-foreground">ROI</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         <Card>
@@ -296,6 +361,10 @@ export default function TripPage() {
                   availableTournaments={dayAvailable}
                   onQuickAdd={handleQuickAdd}
                   onRemove={removeFromSchedule}
+                  getResultForEntry={getResultForEntry}
+                  onLogResult={handleLogResult}
+                  onUpdateResult={handleUpdateResult}
+                  onDeleteResult={handleDeleteResult}
                 />
               )
             })}

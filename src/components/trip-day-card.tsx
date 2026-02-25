@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Tournament, UserScheduleEntry } from '@/types'
+import { Tournament, UserScheduleEntry, TournamentResult } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { LogResultDialog } from '@/components/log-result-dialog'
 import { getSeriesColor, formatBuyIn, formatTime } from '@/lib/utils'
-import { ChevronDown, ChevronUp, CalendarPlus, Trash2, Search } from 'lucide-react'
+import { ChevronDown, ChevronUp, CalendarPlus, Trash2, Search, Trophy, Pencil } from 'lucide-react'
 
 const PRIORITY_CONFIG = {
   target: { label: 'Target', className: 'bg-primary text-primary-foreground' },
@@ -23,6 +24,10 @@ interface TripDayCardProps {
   availableTournaments: Tournament[]
   onQuickAdd: (tournamentId: string) => Promise<void>
   onRemove: (entryId: string) => Promise<void>
+  getResultForEntry: (scheduleEntryId: string) => TournamentResult | null
+  onLogResult: (scheduleEntryId: string, data: { result_amount: number; finish_position?: number | null; notes?: string | null }) => Promise<void>
+  onUpdateResult: (resultId: string, data: { result_amount?: number; finish_position?: number | null; notes?: string | null }) => Promise<void>
+  onDeleteResult: (resultId: string) => Promise<void>
 }
 
 export function TripDayCard({
@@ -33,10 +38,15 @@ export function TripDayCard({
   availableTournaments,
   onQuickAdd,
   onRemove,
+  getResultForEntry,
+  onLogResult,
+  onUpdateResult,
+  onDeleteResult,
 }: TripDayCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [dialogEntry, setDialogEntry] = useState<UserScheduleEntry | null>(null)
 
   const handleQuickAdd = async (tournamentId: string) => {
     setAddingId(tournamentId)
@@ -57,6 +67,8 @@ export function TripDayCard({
   }
 
   const totalBuyIn = scheduledEntries.reduce((sum, e) => sum + (e.tournament?.buy_in ?? 0), 0)
+
+  const dialogResult = dialogEntry ? getResultForEntry(dialogEntry.id) : null
 
   return (
     <Card>
@@ -90,6 +102,8 @@ export function TripDayCard({
               if (!t) return null
               const colors = getSeriesColor(t.series?.name || '', t.series?.venue, t.name)
               const priority = PRIORITY_CONFIG[entry.priority]
+              const result = getResultForEntry(entry.id)
+              const profit = result ? result.result_amount - t.buy_in : null
               return (
                 <div
                   key={entry.id}
@@ -108,15 +122,42 @@ export function TripDayCard({
                     <p className="text-sm font-medium truncate mt-1">{t.name}</p>
                     <p className="text-xs text-muted-foreground">{formatBuyIn(t.buy_in)}</p>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemove(entry.id)}
-                    disabled={removingId === entry.id}
-                    className="text-muted-foreground hover:text-destructive shrink-0 ml-2"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                    {result ? (
+                      <button
+                        onClick={() => setDialogEntry(entry)}
+                        className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors hover:opacity-80 ${
+                          profit !== null && profit >= 0
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                        }`}
+                      >
+                        <Trophy className="size-3" />
+                        {profit !== null && profit >= 0 ? '+' : ''}
+                        {formatBuyIn(profit ?? 0)}
+                        <Pencil className="size-3 ml-0.5 opacity-60" />
+                      </button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDialogEntry(entry)}
+                        className="text-xs h-7"
+                      >
+                        <Trophy className="size-3 mr-1" />
+                        Log
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemove(entry.id)}
+                      disabled={removingId === entry.id}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               )
             })}
@@ -179,6 +220,27 @@ export function TripDayCard({
           </div>
         )}
       </CardContent>
+
+      {/* Log Result Dialog */}
+      {dialogEntry && dialogEntry.tournament && (
+        <LogResultDialog
+          open={!!dialogEntry}
+          onOpenChange={(open) => { if (!open) setDialogEntry(null) }}
+          tournamentName={dialogEntry.tournament.name}
+          buyIn={dialogEntry.tournament.buy_in}
+          existingResult={dialogResult}
+          onSave={async (data) => {
+            if (dialogResult) {
+              await onUpdateResult(dialogResult.id, data)
+            } else {
+              await onLogResult(dialogEntry.id, data)
+            }
+          }}
+          onDelete={dialogResult ? async () => {
+            await onDeleteResult(dialogResult.id)
+          } : undefined}
+        />
+      )}
     </Card>
   )
 }
