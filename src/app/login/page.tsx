@@ -182,6 +182,10 @@ function LoginForm() {
             Sign in with Google
           </Button>
 
+          <p className="text-center text-xs text-muted-foreground">
+            We don&apos;t sell or share your data. Your account is only used to save your schedule and preferences.
+          </p>
+
           <div className="text-center text-sm text-muted-foreground">
             {mode === 'signin' ? (
               <>

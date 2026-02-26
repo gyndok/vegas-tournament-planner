@@ -64,7 +64,18 @@ const faqItems = [
   {
     question: 'What is the Trip Planner?',
     answer:
-      'The Trip Planner helps you set your travel dates and track your trip budget. It shows how many tournament days you have, your total buy-in costs, and helps you plan the financial side of your trip.',
+      'The Trip Planner is your day-by-day Vegas itinerary. Set your arrival and departure dates in Settings, and it builds a daily view showing your scheduled tournaments, available tournaments you can quick-add, budget tracking, and a results summary. It\'s the hub for managing your entire trip.',
+  },
+  // Bankroll Tracker
+  {
+    question: 'How do I log my tournament results?',
+    answer:
+      'On the Trip Planner page, each scheduled tournament has a "Log" button (trophy icon). Click it to enter your cash-out amount, finish position, and optional notes. The dialog shows your profit or loss in real time based on the buy-in. Once you\'ve logged at least one result, a Results Summary appears at the top of your Trip Planner showing your Net P&L, games played, and ROI.',
+  },
+  {
+    question: 'Can I edit or delete a logged result?',
+    answer:
+      'Yes. After logging a result, the "Log" button turns into a colored profit/loss badge (green for profit, red for loss). Click the badge to edit your cash-out amount, finish position, or notes. You can also delete the result entirely from the edit dialog.',
   },
   // AI Advisor
   {
@@ -98,6 +109,12 @@ const faqItems = [
     question: 'Is NextRebuy free?',
     answer:
       'Yes, NextRebuy is currently free to use. All features — browsing, scheduling, sharing, trip planning, and the AI Advisor — are available at no cost.',
+  },
+  // Privacy
+  {
+    question: 'Do you collect or sell my data?',
+    answer:
+      'No. We only store what you explicitly save — your schedule, preferences, favorites, and tournament results. We don\'t track your browsing behavior, sell your information to third parties, or share it with advertisers. Your email is used solely for authentication.',
   },
 ]
 
