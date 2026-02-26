@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Search, MessageSquare, Calendar, TrendingUp, ArrowRight } from 'lucide-react'
 import { DashboardScheduleSummary } from '@/components/dashboard-schedule-summary'
+import { AdUnit } from '@/components/ad-unit'
 import { Tournament, Series } from '@/types'
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
@@ -195,6 +196,9 @@ export default async function DashboardPage() {
           <DashboardScheduleSummary />
         </div>
       </div>
+
+      {/* Banner ad between main content and lower grid */}
+      <AdUnit slot="DASHBOARD_BANNER_SLOT" size="banner" channel="dashboard" />
 
       {/* This Week + Active Series */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

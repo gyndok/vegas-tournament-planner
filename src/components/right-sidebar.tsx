@@ -7,6 +7,7 @@ import { useSidebar } from '@/components/sidebar-context'
 import { TodaysScheduleWidget } from '@/components/todays-schedule-widget'
 import { SeriesLegend } from '@/components/series-legend'
 import { QuickActions } from '@/components/quick-actions'
+import { AdUnit } from '@/components/ad-unit'
 
 export function RightSidebar() {
   const { isRightOpen } = useSidebar()
@@ -25,6 +26,8 @@ export function RightSidebar() {
           <SeriesLegend />
           <Separator />
           <QuickActions />
+          <Separator />
+          <AdUnit slot="SIDEBAR_SLOT_1" size="sidebar" channel="right_sidebar" />
         </div>
       </ScrollArea>
     </aside>

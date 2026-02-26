@@ -10,6 +10,7 @@ import { TournamentCard } from '@/components/tournament-card'
 import { TournamentCardSkeleton } from '@/components/tournament-card-skeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AdUnit } from '@/components/ad-unit'
 import { RefreshCw } from 'lucide-react'
 
 function BrowseContent() {
@@ -149,8 +150,16 @@ function BrowseContent() {
         {/* Results */}
         {!loading && !error && tournaments.length > 0 && (
           <div className="space-y-3">
-            {tournaments.map((tournament) => (
-              <TournamentCard key={tournament.id} tournament={tournament} />
+            {tournaments.map((tournament, index) => (
+              <div key={tournament.id}>
+                <TournamentCard tournament={tournament} />
+                {/* Show an inline ad every 8 results */}
+                {(index + 1) % 8 === 0 && (
+                  <div className="py-2">
+                    <AdUnit slot="BROWSE_INLINE_SLOT" size="inline" channel="browse_feed" />
+                  </div>
+                )}
+              </div>
             ))}
 
             {/* Loading more skeletons */}

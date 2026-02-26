@@ -1,0 +1,4 @@
+# Google AdSense ads.txt
+# Replace PUBLISHER_ID with your actual AdSense publisher ID (e.g. pub-1234567890)
+# See: https://support.google.com/adsense/answer/7532444
+google.com, PUBLISHER_ID, DIRECT, f08c47fec0942fa0

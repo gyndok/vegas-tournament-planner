@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { SidebarProvider } from '@/components/sidebar-context'
+import { AdProvider } from '@/components/ad-context'
 import { LeftSidebar } from '@/components/left-sidebar'
 import { TopHeader } from '@/components/top-header'
 import { RightSidebar } from '@/components/right-sidebar'
@@ -16,6 +17,7 @@ interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <SidebarProvider>
+      <AdProvider>
       <ServiceWorkerRegistration />
       <div className="flex h-screen overflow-hidden">
         {/* Left sidebar */}
@@ -42,6 +44,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       {/* Mobile bottom nav */}
       <MobileBottomNav />
       <InstallPrompt />
+      </AdProvider>
     </SidebarProvider>
   )
 }

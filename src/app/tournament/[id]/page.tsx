@@ -8,6 +8,7 @@ import { ArrowLeft, Clock, DollarSign, Users, Layers, ExternalLink } from 'lucid
 import { AddToScheduleButton } from '@/components/add-to-schedule-button'
 import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
+import { AdUnit } from '@/components/ad-unit'
 import { Tournament, Series } from '@/types'
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
@@ -220,6 +221,9 @@ export default async function TournamentDetailPage({
 
       {/* Add to Schedule button */}
       <AddToScheduleButton tournamentId={tournament.id} />
+
+      {/* Contextual ad — appears between actions and similar tournaments */}
+      <AdUnit slot="DETAIL_SLOT_1" size="responsive" channel="tournament_detail" />
 
       {/* Similar Tournaments */}
       <SimilarTournaments
