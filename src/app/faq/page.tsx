@@ -84,6 +84,11 @@ const faqItems = [
       'The AI Advisor is a chat assistant that knows about all the tournaments in our database. Ask it questions like "What\'s the best $500 NLH tournament this week?" or "Compare the WSOP and Wynn series for PLO" and it\'ll give you personalized recommendations.',
   },
   {
+    question: 'What are good questions to ask the AI Advisor?',
+    answer:
+      'The AI works best with specific questions. Try: "What NLH tournaments under $500 are running this Saturday?", "Compare the WSOP and Wynn series for PLO players", "I have a $3,000 budget for 5 days — build me a schedule", or "What\'s the best value tournament this week?" You can also ask about formats, structures, or help deciding between overlapping events.',
+  },
+  {
     question: 'Is the AI advice reliable?',
     answer:
       'The AI Advisor uses real tournament data from our database and general poker knowledge. It\'s great for comparing options, finding tournaments that match your preferences, and getting a quick overview. However, always verify critical details (like start times and buy-ins) against the official casino schedule.',
