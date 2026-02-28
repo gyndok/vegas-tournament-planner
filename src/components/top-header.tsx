@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
+import { Menu, User, LogOut, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -93,10 +93,6 @@ export function TopHeader() {
         </div>
 
         <ThemeToggle />
-
-        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
-          <Bell className="size-4" />
-        </Button>
 
         {/* User menu */}
         {!loading && (
