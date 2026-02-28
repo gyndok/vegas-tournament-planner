@@ -58,6 +58,7 @@ export interface UserScheduleEntry {
   id: string
   user_id: string
   tournament_id: string
+  entry_number: number
   priority: 'target' | 'backup' | 'maybe'
   notes: string | null
   created_at: string

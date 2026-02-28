@@ -26,7 +26,7 @@ export async function GET(
   // Fetch the user's schedule entries (without notes)
   const { data: entries, error: entriesError } = await supabase
     .from('user_schedule')
-    .select('id, user_id, tournament_id, priority, created_at, tournament:tournament_id(*, series:series_id(id, name, venue))')
+    .select('id, user_id, tournament_id, entry_number, priority, created_at, tournament:tournament_id(*, series:series_id(id, name, venue))')
     .eq('user_id', prefs.user_id)
     .order('created_at', { ascending: true })
 

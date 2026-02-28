@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LogResultDialog } from '@/components/log-result-dialog'
 import { getSeriesColor, formatBuyIn, formatTime } from '@/lib/utils'
-import { ChevronDown, ChevronUp, CalendarPlus, Trash2, Search, Trophy, Pencil } from 'lucide-react'
+import { ChevronDown, ChevronUp, CalendarPlus, Trash2, Search, Trophy, Pencil, RotateCcw } from 'lucide-react'
 
 const PRIORITY_CONFIG = {
   target: { label: 'Target', className: 'bg-primary text-primary-foreground' },
@@ -24,6 +24,7 @@ interface TripDayCardProps {
   availableTournaments: Tournament[]
   onQuickAdd: (tournamentId: string) => Promise<void>
   onRemove: (entryId: string) => Promise<void>
+  onReenter: (tournamentId: string) => Promise<void>
   getResultForEntry: (scheduleEntryId: string) => TournamentResult | null
   onLogResult: (scheduleEntryId: string, data: { result_amount: number; finish_position?: number | null; notes?: string | null }) => Promise<void>
   onUpdateResult: (resultId: string, data: { result_amount?: number; finish_position?: number | null; notes?: string | null }) => Promise<void>
@@ -38,6 +39,7 @@ export function TripDayCard({
   availableTournaments,
   onQuickAdd,
   onRemove,
+  onReenter,
   getResultForEntry,
   onLogResult,
   onUpdateResult,
@@ -120,7 +122,11 @@ export function TripDayCard({
                       </Badge>
                     </div>
                     <p className="text-sm font-medium truncate mt-1">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatBuyIn(t.buy_in)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {scheduledEntries.filter(e => e.tournament_id === t.id).length > 1
+                        ? `Entry ${entry.entry_number} · ${formatBuyIn(t.buy_in)}`
+                        : formatBuyIn(t.buy_in)}
+                    </p>
                   </Link>
                   <div className="flex items-center gap-1 shrink-0 ml-2">
                     {result ? (
@@ -146,6 +152,17 @@ export function TripDayCard({
                       >
                         <Trophy className="size-3 mr-1" />
                         Log
+                      </Button>
+                    )}
+                    {t.format?.toLowerCase().includes('re-entry') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onReenter(t.id)}
+                        className="text-muted-foreground hover:text-primary"
+                        title="Re-enter"
+                      >
+                        <RotateCcw className="size-4" />
                       </Button>
                     )}
                     <Button

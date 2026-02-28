@@ -28,6 +28,7 @@ export default function SchedulePage() {
     id: `custom-${ct.id}`,
     user_id: ct.created_by,
     tournament_id: ct.id,
+    entry_number: 1,
     priority: 'target' as const,
     notes: ct.notes,
     created_at: ct.created_at,

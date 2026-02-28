@@ -155,8 +155,18 @@ export default function FAQPage() {
           <a href="/chat" className="text-primary underline underline-offset-4 hover:text-primary/80">
             AI Advisor
           </a>{' '}
-          to ask anything about tournaments, or reach out to us at{' '}
-          <span className="font-medium text-foreground">support@nextrebuy.com</span>.
+          to ask anything about tournaments, reach out at{' '}
+          <span className="font-medium text-foreground">support@nextrebuy.com</span>
+          , or join our community on{' '}
+          <a
+            href="https://t.me/nextrebuy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-4 hover:text-primary/80"
+          >
+            Telegram
+          </a>
+          .
         </p>
       </div>
     </div>

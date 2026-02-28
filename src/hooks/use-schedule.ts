@@ -50,6 +50,26 @@ export function useSchedule() {
     [fetchSchedule]
   )
 
+  const reenterTournament = useCallback(
+    async (tournamentId: string) => {
+      const res = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tournament_id: tournamentId,
+          priority: 'target',
+          is_reentry: true,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to re-enter tournament')
+      }
+      await fetchSchedule()
+    },
+    [fetchSchedule]
+  )
+
   const removeFromSchedule = useCallback(
     async (entryId: string) => {
       const res = await fetch(`/api/schedule?id=${entryId}`, {
@@ -80,6 +100,13 @@ export function useSchedule() {
     [fetchSchedule]
   )
 
+  const getEntryCount = useCallback(
+    (tournamentId: string) => {
+      return entries.filter((e) => e.tournament_id === tournamentId).length
+    },
+    [entries]
+  )
+
   return {
     entries,
     loading,
@@ -87,6 +114,8 @@ export function useSchedule() {
     addToSchedule,
     removeFromSchedule,
     updateEntry,
+    reenterTournament,
+    getEntryCount,
     refetch: fetchSchedule,
   }
 }

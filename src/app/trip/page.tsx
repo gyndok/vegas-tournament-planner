@@ -41,7 +41,7 @@ function getDaysBetween(start: string, end: string): string[] {
 
 export default function TripPage() {
   const { user, loading: userLoading } = useUser()
-  const { entries, loading: scheduleLoading, addToSchedule, removeFromSchedule } = useSchedule()
+  const { entries, loading: scheduleLoading, addToSchedule, removeFromSchedule, reenterTournament } = useSchedule()
   const { results, loading: resultsLoading, createResult, updateResult, deleteResult, getResultForEntry } = useResults()
   const [prefs, setPrefs] = useState<UserPreferences | null>(null)
   const [prefsLoading, setPrefsLoading] = useState(true)
@@ -361,6 +361,13 @@ export default function TripPage() {
                   availableTournaments={dayAvailable}
                   onQuickAdd={handleQuickAdd}
                   onRemove={removeFromSchedule}
+                  onReenter={async (tournamentId) => {
+                    try {
+                      await reenterTournament(tournamentId)
+                    } catch {
+                      // silently handle
+                    }
+                  }}
                   getResultForEntry={getResultForEntry}
                   onLogResult={handleLogResult}
                   onUpdateResult={handleUpdateResult}

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/components/theme-provider'
 import { ExternalLink, Newspaper } from 'lucide-react'
 
-const TWITTER_LIST_URL = 'https://twitter.com/gyndok/lists/poker-in-vegas'
+const TWITTER_LIST_ID = '2027789342102450505'
 const TWITTER_LIST_FALLBACK_URL = 'https://x.com/i/lists/2027789342102450505'
 
 const POKER_ROOMS = [
@@ -51,19 +51,59 @@ export default function NewsPage() {
       container.innerHTML = ''
       setEmbedFailed(false)
 
-      // Use anchor-tag approach — the officially documented method for list embeds
+      if (!window.twttr?.widgets) return
+
+      // Use createTimeline JS API with numeric list ID — avoids URL slug issues
+      window.twttr.widgets
+        .createTimeline(
+          { sourceType: 'list', id: TWITTER_LIST_ID },
+          container,
+          {
+            theme,
+            chrome: 'noheader nofooter noborders',
+            height: 800,
+            dnt: true,
+            tweetLimit: 20,
+          }
+        )
+        .then((el) => {
+          if (!el) {
+            // Widget returned null — try anchor-tag fallback
+            tryAnchorFallback()
+          }
+        })
+        .catch(() => {
+          // createTimeline failed — try anchor-tag fallback
+          tryAnchorFallback()
+        })
+    }
+
+    function tryAnchorFallback() {
+      if (!container) return
+      container.innerHTML = ''
+
+      // Fallback: anchor tag with twitter.com/i/lists/ID format
       const anchor = document.createElement('a')
       anchor.className = 'twitter-timeline'
       anchor.setAttribute('data-theme', theme)
       anchor.setAttribute('data-chrome', 'noheader nofooter noborders')
       anchor.setAttribute('data-height', '800')
       anchor.setAttribute('data-dnt', 'true')
-      anchor.href = TWITTER_LIST_URL
+      anchor.href = `https://twitter.com/i/lists/${TWITTER_LIST_ID}`
       anchor.textContent = 'Tweets from Poker in Vegas'
       container.appendChild(anchor)
 
       if (window.twttr?.widgets) {
         window.twttr.widgets.load(container)
+
+        // Give it 8 seconds — if still just the anchor text, show error
+        setTimeout(() => {
+          if (container.querySelector('a.twitter-timeline')) {
+            setEmbedFailed(true)
+          }
+        }, 8000)
+      } else {
+        setEmbedFailed(true)
       }
     }
 
