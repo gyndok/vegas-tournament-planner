@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/components/theme-provider'
 import { ExternalLink, Newspaper } from 'lucide-react'
 
-const TWITTER_LIST_ID = '2027789342102450505'
-const TWITTER_LIST_URL = `https://x.com/i/lists/${TWITTER_LIST_ID}`
+const TWITTER_LIST_URL = 'https://twitter.com/gyndok/lists/poker-in-vegas'
+const TWITTER_LIST_FALLBACK_URL = 'https://x.com/i/lists/2027789342102450505'
 
 const POKER_ROOMS = [
   { name: 'WSOP', handle: 'WSOP' },
@@ -23,15 +23,12 @@ declare global {
   interface Window {
     twttr?: {
       widgets: {
+        load: (el?: HTMLElement) => void
         createTimeline: (
-          source: { sourceType: string; id: string },
+          source: { sourceType: string; id?: string; url?: string },
           target: HTMLElement,
           options?: Record<string, unknown>
         ) => Promise<HTMLElement>
-        load: (el?: HTMLElement) => void
-      }
-      events: {
-        bind: (event: string, callback: () => void) => void
       }
     }
   }
@@ -43,51 +40,45 @@ export default function NewsPage() {
   const scriptLoadedRef = useRef(false)
   const [embedFailed, setEmbedFailed] = useState(false)
 
-  // Render timeline using the JS API with list ID
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
     function renderTimeline() {
-      if (!container || !window.twttr?.widgets?.createTimeline) return
+      if (!container) return
 
       // Clear previous embed
       container.innerHTML = ''
       setEmbedFailed(false)
 
-      window.twttr.widgets
-        .createTimeline(
-          { sourceType: 'list', id: TWITTER_LIST_ID },
-          container,
-          {
-            theme: theme,
-            chrome: 'noheader nofooter noborders',
-            height: 800,
-            dnt: true,
-          }
-        )
-        .then(() => {
-          // Successfully rendered
-        })
-        .catch(() => {
-          setEmbedFailed(true)
-        })
+      // Use anchor-tag approach — the officially documented method for list embeds
+      const anchor = document.createElement('a')
+      anchor.className = 'twitter-timeline'
+      anchor.setAttribute('data-theme', theme)
+      anchor.setAttribute('data-chrome', 'noheader nofooter noborders')
+      anchor.setAttribute('data-height', '800')
+      anchor.setAttribute('data-dnt', 'true')
+      anchor.href = TWITTER_LIST_URL
+      anchor.textContent = 'Tweets from Poker in Vegas'
+      container.appendChild(anchor)
+
+      if (window.twttr?.widgets) {
+        window.twttr.widgets.load(container)
+      }
     }
 
-    // If script already loaded, render immediately
+    // If script already loaded, render
     if (scriptLoadedRef.current) {
       renderTimeline()
       return
     }
 
-    // Check if script tag already exists
+    // Check if script exists
     if (document.getElementById('twitter-wjs')) {
       scriptLoadedRef.current = true
-      // Wait for twttr to be ready
       if (window.twttr?.widgets) {
         renderTimeline()
       } else {
-        // Script exists but not loaded yet — poll briefly
         const check = setInterval(() => {
           if (window.twttr?.widgets) {
             clearInterval(check)
@@ -95,7 +86,6 @@ export default function NewsPage() {
             renderTimeline()
           }
         }, 200)
-        // Give up after 10 seconds
         setTimeout(() => {
           clearInterval(check)
           setEmbedFailed(true)
@@ -111,17 +101,12 @@ export default function NewsPage() {
     script.async = true
     script.onload = () => {
       scriptLoadedRef.current = true
-      // Small delay to ensure twttr object is initialized
       setTimeout(renderTimeline, 100)
     }
     script.onerror = () => {
       setEmbedFailed(true)
     }
     document.body.appendChild(script)
-
-    return () => {
-      // Cleanup: don't remove script (shared resource), just clear container
-    }
   }, [theme])
 
   return (
@@ -153,7 +138,6 @@ export default function NewsPage() {
       {/* Twitter List embed */}
       <div className="rounded-lg border border-border overflow-hidden bg-card">
         <div ref={containerRef} className="min-h-[400px]">
-          {/* Placeholder shown until Twitter replaces it */}
           {!embedFailed && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Newspaper className="size-10 text-muted-foreground/30 mb-3" />
@@ -162,7 +146,6 @@ export default function NewsPage() {
           )}
         </div>
 
-        {/* Fallback when embed fails (ad blocker, network issue) */}
         {embedFailed && (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
             <Newspaper className="size-10 text-muted-foreground/30 mb-3" />
@@ -171,7 +154,7 @@ export default function NewsPage() {
               This may be caused by an ad blocker or network issue.
             </p>
             <a
-              href={TWITTER_LIST_URL}
+              href={TWITTER_LIST_FALLBACK_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
@@ -183,11 +166,11 @@ export default function NewsPage() {
         )}
       </div>
 
-      {/* Fallback link (always visible) */}
+      {/* Fallback link */}
       <p className="text-center text-xs text-muted-foreground">
         Feed not loading?{' '}
         <a
-          href={TWITTER_LIST_URL}
+          href={TWITTER_LIST_FALLBACK_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-foreground"
