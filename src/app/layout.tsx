@@ -17,13 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextRebuy — Plan Your Grind",
+  title: "NextRebuy — Vegas Poker Tournament Planner",
   description:
-    "AI-powered poker tournament scheduling for Las Vegas festivals",
+    "Plan your Vegas poker trip. Browse WSOP, Wynn, Venetian, and more. Build your schedule, track results, and get AI-powered tournament recommendations — all free.",
   manifest: "/manifest.json",
   openGraph: {
-    title: "NextRebuy — Plan Your Grind",
-    description: "AI-powered poker tournament scheduling for Las Vegas festivals",
+    title: "NextRebuy — Vegas Poker Tournament Planner",
+    description: "Plan your Vegas poker trip. Browse tournaments, build your schedule, and track your bankroll.",
     images: [{ url: "/logo.png", width: 1248, height: 832 }],
   },
 };
