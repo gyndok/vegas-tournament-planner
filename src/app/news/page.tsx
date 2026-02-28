@@ -10,6 +10,7 @@ const TWITTER_LIST_URL = `https://x.com/i/lists/${TWITTER_LIST_ID}`
 const POKER_ROOMS = [
   { name: 'WSOP', handle: 'WSOP' },
   { name: 'Wynn', handle: 'WynnPoker' },
+  { name: 'Resorts World', handle: 'gicpoker' },
   { name: 'Aria', handle: 'ARIAPoker' },
   { name: 'Venetian', handle: 'VenetianPoker' },
   { name: 'Golden Nugget', handle: 'GNLVpoker' },
