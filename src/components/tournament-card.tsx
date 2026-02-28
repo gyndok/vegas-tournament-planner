@@ -55,10 +55,10 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
             <span className="text-sm font-bold text-foreground">
               {formatBuyIn(tournament.buy_in)}
             </span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+            <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
               {tournament.game_type}
             </Badge>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="text-[11px] px-1.5 py-0">
               {tournament.format}
             </Badge>
           </div>

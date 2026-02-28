@@ -122,6 +122,7 @@ function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                className="text-base md:text-sm"
               />
             </div>
 
@@ -136,6 +137,7 @@ function LoginForm() {
                 required
                 minLength={6}
                 autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                className="text-base md:text-sm"
               />
             </div>
 
