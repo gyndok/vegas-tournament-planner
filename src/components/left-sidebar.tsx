@@ -8,6 +8,7 @@ import {
   Search,
   Calendar,
   MessageSquare,
+  Newspaper,
   Settings,
   HelpCircle,
   LogOut,
@@ -34,6 +35,7 @@ const navItems = [
   { href: '/schedule', label: 'My Schedule', icon: Calendar },
   { href: '/trip', label: 'Trip Planner', icon: Plane },
   { href: '/chat', label: 'AI Advisor', icon: MessageSquare },
+  { href: '/news', label: 'News', icon: Newspaper },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
