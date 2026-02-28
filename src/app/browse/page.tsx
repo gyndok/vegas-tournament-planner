@@ -11,7 +11,7 @@ import { TournamentCardSkeleton } from '@/components/tournament-card-skeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AdUnit } from '@/components/ad-unit'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Info } from 'lucide-react'
 
 function BrowseContent() {
   const { filters, resetFilters, batchSetFilters } = useTournamentFilters()
@@ -111,6 +111,14 @@ function BrowseContent() {
               </TabsList>
             </Tabs>
           )}
+        </div>
+
+        {/* Schedule accuracy disclaimer */}
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 mb-4">
+          <Info className="size-4 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            Schedules are sourced from venue websites and may change without notice. Always confirm details directly with the venue before making travel plans.
+          </p>
         </div>
 
         {/* Initial Loading State */}

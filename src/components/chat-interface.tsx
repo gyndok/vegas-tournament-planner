@@ -173,7 +173,7 @@ export function ChatInterface() {
           </Button>
         </div>
         <p className="mt-2 text-center text-[10px] text-muted-foreground">
-          Shift + Enter for new line. AI may make mistakes -- always verify tournament details.
+          Shift + Enter for new line. Schedules may change without notice — always confirm with the venue.
         </p>
       </div>
     </div>

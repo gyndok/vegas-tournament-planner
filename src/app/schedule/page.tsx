@@ -11,7 +11,7 @@ import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus } from 'lucide-react'
+import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus, Info } from 'lucide-react'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { Tournament, CustomTournament, UserScheduleEntry } from '@/types'
 
@@ -198,6 +198,14 @@ export default function SchedulePage() {
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Schedule accuracy disclaimer */}
+      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
+        <Info className="size-4 text-amber-500 shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground">
+          Schedules are sourced from venue websites and may change without notice. Always confirm details directly with the venue before making travel plans.
+        </p>
       </div>
 
       {/* Share controls */}
