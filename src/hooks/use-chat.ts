@@ -3,12 +3,20 @@
 import { useState, useCallback } from 'react'
 import { ChatMessage, Tournament } from '@/types'
 
+const MAX_HISTORY_MESSAGES = 10 // Match server-side limit
+
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const sendMessage = useCallback(async (content: string) => {
+    // Client-side input length check (matches server limit)
+    if (content.length > 1000) {
+      setError('Please keep your message under 1,000 characters.')
+      return
+    }
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -21,8 +29,10 @@ export function useChat() {
     setError(null)
 
     try {
-      // Build message history for API (just role + content)
-      const apiMessages = [...messages, userMessage].map((m) => ({
+      // Build message history for API — trim to last N messages to control costs
+      const allMessages = [...messages, userMessage]
+      const trimmedMessages = allMessages.slice(-MAX_HISTORY_MESSAGES)
+      const apiMessages = trimmedMessages.map((m) => ({
         role: m.role,
         content: m.content,
       }))
@@ -34,6 +44,14 @@ export function useChat() {
       })
 
       const data = await res.json()
+
+      // Handle rate limit
+      if (res.status === 429) {
+        setError(data.content || 'Too many messages. Please wait a bit and try again.')
+        // Remove the user message we optimistically added
+        setMessages((prev) => prev.filter((m) => m.id !== userMessage.id))
+        return
+      }
 
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),

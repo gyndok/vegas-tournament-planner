@@ -4,9 +4,32 @@ import { anthropic, CHAT_MODEL, buildSystemPrompt, TOOL_DEFINITIONS } from '@/li
 import { createClient } from '@/lib/supabase/server'
 import { buildTournamentQuery } from '@/lib/queries'
 import { Tournament } from '@/types'
+import { checkRateLimit } from '@/lib/rate-limit'
+
+// Cost protection constants
+const MAX_HISTORY_MESSAGES = 10 // Only send last 10 messages (5 turns) to Claude
+const MAX_INPUT_LENGTH = 1000 // Max characters per user message
 
 export async function POST(request: NextRequest) {
   try {
+    // --- Rate limiting ---
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
+    const rateCheck = checkRateLimit(ip)
+
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil(rateCheck.resetInSeconds / 60)
+      return NextResponse.json(
+        {
+          content: `You've hit the message limit (20/hour). Try again in about ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+          tournaments: [],
+        },
+        { status: 429 }
+      )
+    }
+
     const { messages } = await request.json()
 
     if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'your-anthropic-api-key') {
@@ -19,12 +42,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // --- Input length cap ---
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage?.content && lastMessage.content.length > MAX_INPUT_LENGTH) {
+      return NextResponse.json(
+        {
+          content: `Please keep your message under ${MAX_INPUT_LENGTH} characters. Try being more specific about what you're looking for.`,
+          tournaments: [],
+        },
+        { status: 200 }
+      )
+    }
+
     const supabase = await createClient()
     const currentTime = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
     const systemPrompt = buildSystemPrompt(currentTime)
 
+    // --- History trimming ---
+    // Only send the last N messages to keep token costs predictable
+    const trimmedMessages = messages.slice(-MAX_HISTORY_MESSAGES)
+
     // Convert messages to Anthropic format
-    const anthropicMessages: Anthropic.Messages.MessageParam[] = messages.map(
+    const anthropicMessages: Anthropic.Messages.MessageParam[] = trimmedMessages.map(
       (m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
