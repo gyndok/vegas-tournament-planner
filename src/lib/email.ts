@@ -84,7 +84,7 @@ export async function sendScheduleChangeEmail(
   `
 
   await resend.emails.send({
-    from: 'NextRebuy <onboarding@resend.dev>',
+    from: 'NextRebuy <notifications@nextrebuy.com>',
     to,
     subject,
     html,

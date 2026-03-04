@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
     `
 
     await resend.emails.send({
-      from: 'NextRebuy Feedback <onboarding@resend.dev>',
-      to: 'gyndok@yahoo.com',
+      from: 'NextRebuy Feedback <feedback@nextrebuy.com>',
+      to: 'support@nextrebuy.com',
       replyTo: email,
       subject: `[NextRebuy Feedback] ${category}: ${subject}`,
       html,
