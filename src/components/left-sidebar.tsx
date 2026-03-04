@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -19,6 +20,9 @@ import {
   PanelLeft,
   Shield,
   Plane,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -45,6 +49,26 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
   const router = useRouter()
   const { user, loading } = useUser()
   const { toggleLeft, isLeftOpen } = useSidebar()
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  const isPro = user?.user_metadata?.subscription_tier === 'pro'
+
+  async function handleUpgrade() {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        console.error('Checkout error:', data.error)
+        setCheckoutLoading(false)
+      }
+    } catch (err) {
+      console.error('Checkout error:', err)
+      setCheckoutLoading(false)
+    }
+  }
 
   const isAdmin = (() => {
     if (!user?.email) return false
@@ -251,19 +275,64 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
             </>
           )}
 
-          {!collapsed && (
+          {/* Pro upgrade / status */}
+          {!loading && user && (
             <>
               <Separator className="my-2 bg-sidebar-border" />
-              {/* Upgrade placeholder */}
-              <div className="rounded-lg bg-sidebar-accent/50 p-3">
-                <div className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/70">
-                  <Crown className="size-4 text-amber-500" />
-                  <span>Upgrade to Pro</span>
-                </div>
-                <p className="text-[10px] text-sidebar-foreground/50 mt-1">
-                  Coming soon
-                </p>
-              </div>
+              {isPro ? (
+                collapsed ? (
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center justify-center rounded-lg p-2.5">
+                        <Crown className="size-5 text-amber-500" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={8}>Pro Member</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <div className="rounded-lg bg-amber-500/10 p-3">
+                    <div className="flex items-center gap-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+                      <Crown className="size-4" />
+                      <span>Pro Member</span>
+                      <CheckCircle2 className="size-3.5 ml-auto" />
+                    </div>
+                  </div>
+                )
+              ) : (
+                collapsed ? (
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={handleUpgrade}
+                        disabled={checkoutLoading}
+                        className="flex w-full items-center justify-center rounded-lg p-2.5 text-amber-500 hover:bg-sidebar-accent transition-colors disabled:opacity-50"
+                      >
+                        {checkoutLoading ? (
+                          <Loader2 className="size-5 animate-spin" />
+                        ) : (
+                          <Sparkles className="size-5" />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={8}>Go Pro — $4.99</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <button
+                    onClick={handleUpgrade}
+                    disabled={checkoutLoading}
+                    className="w-full rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 p-3 transition-colors text-left disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+                      <Sparkles className="size-4" />
+                      <span>Go Pro</span>
+                      <span className="ml-auto text-[10px] text-sidebar-foreground/60">$4.99</span>
+                    </div>
+                    <p className="text-[10px] text-sidebar-foreground/50 mt-1">
+                      {checkoutLoading ? 'Redirecting to checkout...' : 'Remove all ads forever'}
+                    </p>
+                  </button>
+                )
+              )}
             </>
           )}
         </div>

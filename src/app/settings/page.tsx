@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { LogIn, Save, Check, AlertCircle } from 'lucide-react'
+import { LogIn, Save, Check, AlertCircle, Crown, Sparkles, Loader2 } from 'lucide-react'
 
 const GAME_OPTIONS = ['NLH', 'PLO', 'PLO8', 'Mixed', 'Stud', 'Razz', 'HORSE', 'Omaha Hi-Lo', 'Limit Hold\'em']
 const FORMAT_OPTIONS = ['Freezeout', 'Re-entry', 'Rebuy', 'Turbo', 'Super Turbo', 'Bounty', 'Mystery Bounty', 'Satellite', 'Mega Satellite', 'Deep Stack']
@@ -32,6 +32,26 @@ export default function SettingsPage() {
   const [tripStart, setTripStart] = useState<string>('')
   const [tripEnd, setTripEnd] = useState<string>('')
   const [tripBudget, setTripBudget] = useState<string>('')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  const isPro = user?.user_metadata?.subscription_tier === 'pro'
+
+  async function handleUpgrade() {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setFeedback({ type: 'error', message: data.error || 'Failed to start checkout.' })
+        setCheckoutLoading(false)
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Network error. Please try again.' })
+      setCheckoutLoading(false)
+    }
+  }
 
   const loadPreferences = useCallback(async () => {
     try {
@@ -141,6 +161,49 @@ export default function SettingsPage() {
           Configure your tournament preferences to get personalized recommendations.
         </p>
       </div>
+
+      {/* Pro Membership */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Crown className="size-5 text-amber-500" />
+            Pro Membership
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isPro ? (
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-amber-500/10 p-2">
+                <Crown className="size-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-medium text-emerald-600 dark:text-emerald-400">You&apos;re a Pro!</p>
+                <p className="text-sm text-muted-foreground">
+                  Ads have been removed from your NextRebuy experience. Thank you for your support!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Remove all ads from NextRebuy with a one-time $4.99 payment. All features remain free — Pro just gets rid of the ads.
+              </p>
+              <Button
+                onClick={handleUpgrade}
+                disabled={checkoutLoading}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              >
+                {checkoutLoading ? (
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="size-4 mr-2" />
+                )}
+                {checkoutLoading ? 'Redirecting...' : 'Upgrade to Pro — $4.99'}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {feedback && (
         <div
