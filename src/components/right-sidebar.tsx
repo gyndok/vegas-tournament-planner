@@ -27,7 +27,7 @@ export function RightSidebar() {
           <Separator />
           <QuickActions />
           <Separator />
-          <AdUnit slot="SIDEBAR_SLOT_1" size="sidebar" channel="right_sidebar" />
+          <AdUnit slot="9877859861" size="sidebar" channel="right_sidebar" />
         </div>
       </ScrollArea>
     </aside>

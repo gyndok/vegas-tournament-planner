@@ -164,7 +164,7 @@ function BrowseContent() {
                 {/* Show an inline ad every 8 results */}
                 {(index + 1) % 8 === 0 && (
                   <div className="py-2">
-                    <AdUnit slot="BROWSE_INLINE_SLOT" size="inline" channel="browse_feed" />
+                    <AdUnit slot="3954139833" size="inline" channel="browse_feed" />
                   </div>
                 )}
               </div>

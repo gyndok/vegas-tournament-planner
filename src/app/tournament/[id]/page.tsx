@@ -223,7 +223,7 @@ export default async function TournamentDetailPage({
       <AddToScheduleButton tournamentId={tournament.id} tournamentFormat={tournament.format} />
 
       {/* Contextual ad — appears between actions and similar tournaments */}
-      <AdUnit slot="DETAIL_SLOT_1" size="responsive" channel="tournament_detail" />
+      <AdUnit slot="9431137307" size="responsive" channel="tournament_detail" />
 
       {/* Similar Tournaments */}
       <SimilarTournaments

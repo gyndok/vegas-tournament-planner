@@ -11,6 +11,7 @@ import {
   Newspaper,
   Settings,
   HelpCircle,
+  MessageSquareText,
   LogOut,
   LogIn,
   Crown,
@@ -179,6 +180,23 @@ function SidebarContent({ collapsed = false }: { collapsed?: boolean }) {
             <Link href="/faq" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
               <HelpCircle className="size-5" />
               <span>Help & FAQ</span>
+            </Link>
+          )}
+
+          {/* Feedback */}
+          {collapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Link href="/feedback" className="flex w-full items-center justify-center rounded-lg p-2.5 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
+                  <MessageSquareText className="size-5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={8}>Feedback</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Link href="/feedback" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
+              <MessageSquareText className="size-5" />
+              <span>Feedback</span>
             </Link>
           )}
 

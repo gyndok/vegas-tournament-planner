@@ -236,7 +236,7 @@ export function DashboardAuthenticated() {
       </div>
 
       {/* 5. Ad unit */}
-      <AdUnit slot="DASHBOARD_BANNER_SLOT" size="banner" channel="dashboard" />
+      <AdUnit slot="8176455870" size="banner" channel="dashboard" />
 
       {/* 6. This Week's Schedule */}
       <WeekScheduleCard entries={weekEntries} />
