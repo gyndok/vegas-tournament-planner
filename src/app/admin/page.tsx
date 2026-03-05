@@ -15,6 +15,8 @@ import { useUser } from '@/hooks/use-user'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatTime, formatBuyIn, getSeriesColor } from '@/lib/utils'
 import type { Tournament, Series } from '@/types'
+import ImportTab from '@/components/admin/import-tab'
+import AddNewTab from '@/components/admin/add-new-tab'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -570,25 +572,17 @@ export default function AdminPage() {
         </TabsContent>
 
         {/* ============================================================ */}
-        {/* IMPORT TAB (placeholder)                                     */}
+        {/* IMPORT TAB                                                   */}
         {/* ============================================================ */}
         <TabsContent value="import">
-          <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-            Import tool coming soon. Use the dedicated{' '}
-            <a href="/admin/import" className="underline ml-1">
-              import page
-            </a>{' '}
-            for now.
-          </div>
+          <ImportTab />
         </TabsContent>
 
         {/* ============================================================ */}
-        {/* ADD NEW TAB (placeholder)                                    */}
+        {/* ADD NEW TAB                                                  */}
         {/* ============================================================ */}
         <TabsContent value="add">
-          <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
-            Add new tournament form coming soon.
-          </div>
+          <AddNewTab />
         </TabsContent>
       </Tabs>
 
