@@ -72,8 +72,8 @@ export async function sendScheduleChangeEmail(
       </table>
 
       <p style="margin-top:16px;font-size:13px">
-        <a href="https://vegas-tournament-planner.vercel.app/admin/import" style="color:#3b82f6;text-decoration:none">
-          Open Admin Panel to review and import →
+        <a href="https://nextrebuy.com/admin" style="color:#3b82f6;text-decoration:none">
+          Open Admin Panel →
         </a>
       </p>
 

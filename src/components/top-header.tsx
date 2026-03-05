@@ -26,7 +26,7 @@ const pageTitles: Record<string, string> = {
   '/chat': 'AI Advisor',
   '/settings': 'Settings',
   '/login': 'Sign In',
-  '/admin/import': 'Admin Import',
+  '/admin': 'Admin',
 }
 
 function getPageTitle(pathname: string): string {
