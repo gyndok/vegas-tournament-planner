@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
 import { DashboardShell } from "@/components/dashboard-shell";
@@ -55,6 +57,8 @@ export default function RootLayout({
             </DashboardShell>
           </TooltipProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
