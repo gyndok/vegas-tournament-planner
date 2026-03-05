@@ -110,7 +110,7 @@ function parseBlock(
   const contentLines = extractContentLines(blockText)
 
   // ---- Identify fields from content lines ----
-  let { eventType, eventName, buyIn, gameType, guarantee, details } =
+  let { eventType, eventName, buyIn, gameType, guarantee, details, startingStack, blindLevelsMinutes, lateRegLevels } =
     identifyFields(contentLines)
 
   // ---- Fallback: extract buy-in and game type from URL if not found in content ----
@@ -145,6 +145,9 @@ function parseBlock(
     raw_name: eventName,
     raw_event_number: eventNum,
     raw_event_type: eventType,
+    raw_starting_stack: startingStack,
+    raw_blind_levels_minutes: blindLevelsMinutes,
+    raw_late_reg_levels: lateRegLevels,
   }
 }
 
@@ -168,7 +171,7 @@ function parseBlockAlternate(
   const rawTime = timeMatch ? timeMatch[1] : '12:00pm'
 
   const contentLines = extractContentLines(blockText)
-  let { eventType, eventName, buyIn, gameType, guarantee } =
+  let { eventType, eventName, buyIn, gameType, guarantee, startingStack, blindLevelsMinutes, lateRegLevels } =
     identifyFields(contentLines)
 
   // ---- Fallback: extract buy-in and game type from URL if not found in content ----
@@ -202,6 +205,9 @@ function parseBlockAlternate(
     raw_name: eventName || `Event #${eventNum}`,
     raw_event_number: eventNum,
     raw_event_type: eventType,
+    raw_starting_stack: startingStack,
+    raw_blind_levels_minutes: blindLevelsMinutes,
+    raw_late_reg_levels: lateRegLevels,
   }
 }
 
@@ -307,6 +313,9 @@ function identifyFields(lines: string[]): {
   gameType: string
   guarantee: string
   details: string[]
+  startingStack: string
+  blindLevelsMinutes: string
+  lateRegLevels: string
 } {
   let eventType = ''
   let eventName = ''
@@ -314,6 +323,9 @@ function identifyFields(lines: string[]): {
   let gameType = ''
   let guarantee = ''
   const details: string[] = []
+  let startingStack = ''
+  let blindLevelsMinutes = ''
+  let lateRegLevels = ''
 
   // Known event types
   const eventTypes = ['series event', 'satellite', 'side event']
@@ -344,6 +356,22 @@ function identifyFields(lines: string[]): {
       if (/\$[\d,]+\s*(?:k|m)?\s*(?:gtd|guaranteed)/i.test(line)) {
         const gMatch = line.match(/(\$[\d,]+\s*(?:k|m)?)\s*(?:gtd|guaranteed)/i)
         if (gMatch) guarantee = gMatch[1]
+      }
+      // Extract starting stack: "20,000 chips", "50000 Chips", "25,000 starting chips"
+      if (/[\d,]+\s*(?:chips|starting)/i.test(detail) && !startingStack) {
+        const stackMatch = detail.match(/([\d,]+)\s*(?:chips|starting)/i)
+        if (stackMatch) startingStack = stackMatch[1].replace(/,/g, '')
+      }
+      // Extract blind level duration: "20 min levels", "30-min levels", "25 minute levels"
+      if (/\d+\s*[-]?\s*min/i.test(detail) && !blindLevelsMinutes) {
+        const levelMatch = detail.match(/(\d+)\s*[-]?\s*min/i)
+        if (levelMatch) blindLevelsMinutes = levelMatch[1]
+      }
+      // Extract late reg levels: "Late entry through level 8", "Late reg through 6 levels"
+      if (/late\s*(?:reg|entry|registration)/i.test(detail) && !lateRegLevels) {
+        const regMatch = detail.match(/(?:level|lvl)\s*(\d+)/i) ||
+                         detail.match(/(\d+)\s*level/i)
+        if (regMatch) lateRegLevels = regMatch[1]
       }
       continue
     }
@@ -469,5 +497,5 @@ function identifyFields(lines: string[]): {
     }
   }
 
-  return { eventType, eventName, buyIn, gameType, guarantee, details }
+  return { eventType, eventName, buyIn, gameType, guarantee, details, startingStack, blindLevelsMinutes, lateRegLevels }
 }

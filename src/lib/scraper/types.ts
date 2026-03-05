@@ -44,6 +44,12 @@ export interface RawScrapedRow {
   raw_event_number: string
   /** Event type from PokerAtlas: "Series Event", "Side Event", "Satellite" */
   raw_event_type: string
+  /** Starting stack parsed from details, e.g. "20000" */
+  raw_starting_stack: string
+  /** Blind level duration in minutes, e.g. "20" */
+  raw_blind_levels_minutes: string
+  /** Number of late reg levels, e.g. "8" */
+  raw_late_reg_levels: string
 }
 
 /** Normalized tournament data ready for database insertion */
