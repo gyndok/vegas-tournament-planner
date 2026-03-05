@@ -8,6 +8,7 @@ import { usePreferences } from '@/hooks/use-preferences'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AdUnit } from '@/components/ad-unit'
+import { ClosingSoonWidget } from '@/components/closing-soon-widget'
 import {
   Calendar,
   Plane,
@@ -184,6 +185,9 @@ export function DashboardAuthenticated() {
 
       {/* 3. Today's Schedule */}
       <TodayScheduleCard entries={todayEntries} today={today} />
+
+      {/* 3b. Late Reg Closing Soon */}
+      <ClosingSoonWidget />
 
       {/* 4. Trip Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
