@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAds } from '@/components/ad-context'
 import { cn } from '@/lib/utils'
 
@@ -54,6 +54,7 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
   const { showAds, adsReady, publisherId } = useAds()
   const adRef = useRef<HTMLModElement>(null)
   const pushed = useRef(false)
+  const [adFilled, setAdFilled] = useState(false)
 
   useEffect(() => {
     if (!showAds || !adsReady || pushed.current) return
@@ -66,6 +67,28 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
     }
   }, [showAds, adsReady])
 
+  // Watch for AdSense filling the slot (it adds content/height to the <ins>)
+  useEffect(() => {
+    if (!adRef.current || !pushed.current) return
+
+    const observer = new MutationObserver(() => {
+      const el = adRef.current
+      if (el && (el.childElementCount > 0 || el.offsetHeight > 0)) {
+        setAdFilled(true)
+        observer.disconnect()
+      }
+    })
+
+    observer.observe(adRef.current, { childList: true, subtree: true, attributes: true })
+
+    // Also check immediately in case it already filled
+    if (adRef.current.childElementCount > 0 || adRef.current.offsetHeight > 0) {
+      setAdFilled(true)
+    }
+
+    return () => observer.disconnect()
+  }, [adsReady])
+
   // Don't render anything if ads are disabled or not configured
   if (!showAds || !publisherId) return null
 
@@ -75,14 +98,16 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
     <div
       className={cn(
         'ad-unit overflow-hidden rounded-lg',
-        // Subtle visual separation so ads don't look jarring
-        'bg-muted/30 border border-border/50',
+        // Hide the wrapper entirely until an ad actually fills
+        adFilled ? 'bg-muted/30 border border-border/50' : 'h-0 overflow-hidden',
         className
       )}
     >
-      <div className="text-[10px] text-muted-foreground/50 text-center py-0.5 select-none">
-        Advertisement
-      </div>
+      {adFilled && (
+        <div className="text-[10px] text-muted-foreground/50 text-center py-0.5 select-none">
+          Advertisement
+        </div>
+      )}
       <ins
         ref={adRef}
         className="adsbygoogle"
