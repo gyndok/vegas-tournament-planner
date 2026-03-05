@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FavoriteButton } from '@/components/favorite-button'
 import { QuickAddButton } from '@/components/quick-add-button'
+import { LateRegBadge } from '@/components/late-reg-badge'
 
 interface TournamentCardProps {
   tournament: Tournament
@@ -62,6 +63,9 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
               {tournament.format}
             </Badge>
           </div>
+
+          {/* Late registration countdown (today's tournaments only) */}
+          <LateRegBadge tournament={tournament} size="sm" showStatic={false} />
 
           {/* Info row 3 (conditional): Table size | Guarantee | Flight */}
           {(tournament.table_size !== 9 ||

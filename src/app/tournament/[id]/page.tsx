@@ -9,6 +9,7 @@ import { AddToScheduleButton } from '@/components/add-to-schedule-button'
 import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
 import { AdUnit } from '@/components/ad-unit'
+import { LateRegBadge } from '@/components/late-reg-badge'
 import { Tournament, Series } from '@/types'
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
@@ -170,6 +171,9 @@ export default async function TournamentDetailPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* Late Registration Countdown */}
+      <LateRegBadge tournament={tournament as Tournament} size="lg" showStatic={true} />
 
       {/* Structure sheet link (WSOP only) */}
       {isWsop && (
