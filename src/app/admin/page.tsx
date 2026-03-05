@@ -8,6 +8,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
   Trash2,
   Save,
 } from 'lucide-react'
@@ -50,6 +53,48 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 
 // ---------------------------------------------------------------------------
+// Sortable column header
+// ---------------------------------------------------------------------------
+function SortableHeader({
+  field,
+  label,
+  sortBy,
+  sortDir,
+  onSort,
+  align = 'left',
+}: {
+  field: SortField
+  label: string
+  sortBy: SortField
+  sortDir: 'asc' | 'desc'
+  onSort: (field: SortField) => void
+  align?: 'left' | 'right'
+}) {
+  const isActive = sortBy === field
+  return (
+    <th
+      className={`px-3 py-2 font-medium cursor-pointer select-none hover:bg-muted/80 transition-colors ${
+        align === 'right' ? 'text-right' : 'text-left'
+      }`}
+      onClick={() => onSort(field)}
+    >
+      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
+        {label}
+        {isActive ? (
+          sortDir === 'asc' ? (
+            <ChevronUp className="size-3.5" />
+          ) : (
+            <ChevronDown className="size-3.5" />
+          )
+        ) : (
+          <ChevronsUpDown className="size-3.5 text-muted-foreground/40" />
+        )}
+      </span>
+    </th>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Auth helper
 // ---------------------------------------------------------------------------
 function isClientAdmin(email: string | undefined | null): boolean {
@@ -64,6 +109,8 @@ function isClientAdmin(email: string | undefined | null): boolean {
 // Constants
 // ---------------------------------------------------------------------------
 const PAGE_SIZE = 50
+
+type SortField = 'date' | 'start_time' | 'name' | 'buy_in' | 'game_type' | 'format' | 'guaranteed_prize'
 
 const GAME_TYPES = [
   'NLH',
@@ -132,6 +179,10 @@ export default function AdminPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterSeriesId, setFilterSeriesId] = useState<string>('')
   const [filterGameType, setFilterGameType] = useState<string>('')
+
+  // Sorting
+  const [sortBy, setSortBy] = useState<SortField>('date')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   // Series list for dropdown
   const [seriesList, setSeriesList] = useState<Series[]>([])
@@ -209,8 +260,8 @@ export default function AdminPage() {
       if (debouncedSearch) params.set('search', debouncedSearch)
       if (filterSeriesId) params.set('series_id', filterSeriesId)
       if (filterGameType) params.set('game_type', filterGameType)
-      params.set('sort_by', 'date')
-      params.set('sort_dir', 'desc')
+      params.set('sort_by', sortBy)
+      params.set('sort_dir', sortDir)
       params.set('limit', String(PAGE_SIZE))
       params.set('offset', String(offset))
 
@@ -224,7 +275,7 @@ export default function AdminPage() {
     } finally {
       setListLoading(false)
     }
-  }, [debouncedSearch, filterSeriesId, filterGameType, offset])
+  }, [debouncedSearch, filterSeriesId, filterGameType, offset, sortBy, sortDir])
 
   useEffect(() => {
     if (!user || !isClientAdmin(user.email)) return
@@ -364,6 +415,21 @@ export default function AdminPage() {
   }
 
   // ------------------------------------------------------------------
+  // Sort handler
+  // ------------------------------------------------------------------
+  function handleSort(field: SortField) {
+    if (sortBy === field) {
+      // Toggle direction
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortBy(field)
+      // Default direction per field type
+      setSortDir(field === 'name' || field === 'game_type' || field === 'format' ? 'asc' : 'desc')
+    }
+    setOffset(0)
+  }
+
+  // ------------------------------------------------------------------
   // Pagination helpers
   // ------------------------------------------------------------------
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
@@ -487,14 +553,14 @@ export default function AdminPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="px-3 py-2 text-left font-medium">Date</th>
-                  <th className="px-3 py-2 text-left font-medium">Time</th>
-                  <th className="px-3 py-2 text-left font-medium">Tournament</th>
+                  <SortableHeader field="date" label="Date" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHeader field="start_time" label="Time" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHeader field="name" label="Tournament" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                   <th className="px-3 py-2 text-left font-medium">Casino</th>
-                  <th className="px-3 py-2 text-right font-medium">Buy-in</th>
-                  <th className="px-3 py-2 text-left font-medium">Game</th>
-                  <th className="px-3 py-2 text-left font-medium">Format</th>
-                  <th className="px-3 py-2 text-right font-medium">GTD</th>
+                  <SortableHeader field="buy_in" label="Buy-in" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} align="right" />
+                  <SortableHeader field="game_type" label="Game" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHeader field="format" label="Format" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                  <SortableHeader field="guaranteed_prize" label="GTD" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} align="right" />
                 </tr>
               </thead>
               <tbody>

@@ -52,13 +52,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Sorting
-    if (sortBy === 'buy_in') {
-      query = query.order('buy_in', { ascending })
-    } else if (sortBy === 'name') {
-      query = query.order('name', { ascending })
-    } else {
-      // default: date
-      query = query.order('date', { ascending }).order('start_time', { ascending })
+    switch (sortBy) {
+      case 'buy_in':
+        query = query.order('buy_in', { ascending }).order('date').order('start_time')
+        break
+      case 'name':
+        query = query.order('name', { ascending }).order('date')
+        break
+      case 'start_time':
+        query = query.order('start_time', { ascending }).order('date')
+        break
+      case 'game_type':
+        query = query.order('game_type', { ascending }).order('date').order('start_time')
+        break
+      case 'format':
+        query = query.order('format', { ascending }).order('date').order('start_time')
+        break
+      case 'guaranteed_prize':
+        query = query.order('guaranteed_prize', { ascending, nullsFirst: false }).order('date').order('start_time')
+        break
+      default:
+        // date
+        query = query.order('date', { ascending }).order('start_time', { ascending })
+        break
     }
 
     // Pagination
