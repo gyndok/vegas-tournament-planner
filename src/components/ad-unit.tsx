@@ -67,24 +67,25 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
     }
   }, [showAds, adsReady])
 
-  // Watch for AdSense filling the slot (it adds content/height to the <ins>)
+  // Watch for AdSense actually filling the slot with a real ad.
+  // AdSense sets data-ad-status="filled" when an ad is served,
+  // and "unfilled" when no ad is available (e.g. site not approved yet).
   useEffect(() => {
     if (!adRef.current || !pushed.current) return
 
-    const observer = new MutationObserver(() => {
+    const checkFilled = () => {
       const el = adRef.current
-      if (el && (el.childElementCount > 0 || el.offsetHeight > 0)) {
+      if (el?.getAttribute('data-ad-status') === 'filled') {
         setAdFilled(true)
         observer.disconnect()
       }
-    })
-
-    observer.observe(adRef.current, { childList: true, subtree: true, attributes: true })
-
-    // Also check immediately in case it already filled
-    if (adRef.current.childElementCount > 0 || adRef.current.offsetHeight > 0) {
-      setAdFilled(true)
     }
+
+    const observer = new MutationObserver(checkFilled)
+    observer.observe(adRef.current, { attributes: true, attributeFilter: ['data-ad-status'] })
+
+    // Check immediately in case it was already set
+    checkFilled()
 
     return () => observer.disconnect()
   }, [adsReady])
