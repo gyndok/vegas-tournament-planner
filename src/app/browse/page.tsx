@@ -8,10 +8,12 @@ import { UserPreferences } from '@/types'
 import { TournamentFilters } from '@/components/tournament-filters'
 import { TournamentCard } from '@/components/tournament-card'
 import { TournamentCardSkeleton } from '@/components/tournament-card-skeleton'
+import { TournamentTable } from '@/components/tournament-table'
+import { TournamentTableSkeleton } from '@/components/tournament-table-skeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AdUnit } from '@/components/ad-unit'
-import { RefreshCw, Info } from 'lucide-react'
+import { RefreshCw, Info, LayoutGrid, Rows3 } from 'lucide-react'
 
 function BrowseContent() {
   const { filters, resetFilters, batchSetFilters } = useTournamentFilters()
@@ -19,6 +21,18 @@ function BrowseContent() {
   const { user } = useUser()
   const [prefsMode, setPrefsMode] = useState(false)
   const [prefsLoading, setPrefsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'classic' | 'lobby'>('classic')
+
+  // Load view preference from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('browseView') as 'classic' | 'lobby' | null
+    if (stored) setViewMode(stored)
+  }, [])
+
+  function handleViewChange(mode: 'classic' | 'lobby') {
+    setViewMode(mode)
+    localStorage.setItem('browseView', mode)
+  }
 
   // Intersection Observer for infinite scroll
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -95,22 +109,46 @@ function BrowseContent() {
             )}
           </div>
 
-          {/* Preferences toggle — only shown when logged in */}
-          {user && (
-            <Tabs
-              value={prefsMode ? 'preferences' : 'all'}
-              onValueChange={handleTabChange}
-            >
-              <TabsList className="h-8">
-                <TabsTrigger value="all" className="text-xs px-3">
-                  All
-                </TabsTrigger>
-                <TabsTrigger value="preferences" className="text-xs px-3" disabled={prefsLoading}>
-                  {prefsLoading ? 'Loading...' : 'My Preferences'}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
+          <div className="flex items-center gap-3">
+            {/* View toggle — desktop only */}
+            <div className="hidden md:flex items-center gap-1 border border-border rounded-lg p-0.5">
+              <Button
+                variant={viewMode === 'classic' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 text-xs px-2.5 gap-1.5"
+                onClick={() => handleViewChange('classic')}
+              >
+                <LayoutGrid className="size-3.5" />
+                Classic
+              </Button>
+              <Button
+                variant={viewMode === 'lobby' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 text-xs px-2.5 gap-1.5"
+                onClick={() => handleViewChange('lobby')}
+              >
+                <Rows3 className="size-3.5" />
+                Lobby
+              </Button>
+            </div>
+
+            {/* Preferences toggle — only shown when logged in */}
+            {user && (
+              <Tabs
+                value={prefsMode ? 'preferences' : 'all'}
+                onValueChange={handleTabChange}
+              >
+                <TabsList className="h-8">
+                  <TabsTrigger value="all" className="text-xs px-3">
+                    All
+                  </TabsTrigger>
+                  <TabsTrigger value="preferences" className="text-xs px-3" disabled={prefsLoading}>
+                    {prefsLoading ? 'Loading...' : 'My Preferences'}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
         </div>
 
         {/* Schedule accuracy disclaimer */}
@@ -123,7 +161,12 @@ function BrowseContent() {
 
         {/* Initial Loading State */}
         {loading && (
-          <div className="space-y-3">
+          viewMode === 'lobby' ? (
+            <div className="hidden md:block"><TournamentTableSkeleton /></div>
+          ) : null
+        )}
+        {loading && (
+          <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
             {Array.from({ length: 6 }).map((_, i) => (
               <TournamentCardSkeleton key={i} />
             ))}
@@ -158,21 +201,33 @@ function BrowseContent() {
         {/* Results */}
         {!loading && !error && tournaments.length > 0 && (
           <div className="space-y-3">
-            {tournaments.map((tournament, index) => (
-              <div key={tournament.id}>
-                <TournamentCard tournament={tournament} />
-                {/* Show an inline ad every 8 results */}
-                {(index + 1) % 8 === 0 && (
-                  <div className="py-2">
-                    <AdUnit slot="3954139833" size="inline" channel="browse_feed" />
-                  </div>
-                )}
+            {/* Lobby table view — desktop only */}
+            {viewMode === 'lobby' && (
+              <div className="hidden md:block">
+                <TournamentTable tournaments={tournaments} />
               </div>
-            ))}
+            )}
+
+            {/* Card view — always on mobile, on desktop when classic */}
+            <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
+              {tournaments.map((tournament, index) => (
+                <div key={tournament.id}>
+                  <TournamentCard tournament={tournament} />
+                  {(index + 1) % 8 === 0 && (
+                    <div className="py-2">
+                      <AdUnit slot="BROWSE_INLINE_SLOT" size="inline" channel="browse_feed" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
 
             {/* Loading more skeletons */}
+            {loadingMore && viewMode === 'lobby' && (
+              <div className="hidden md:block"><TournamentTableSkeleton /></div>
+            )}
             {loadingMore && (
-              <div className="space-y-3">
+              <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
                 {Array.from({ length: 3 }).map((_, i) => (
                   <TournamentCardSkeleton key={`skeleton-${i}`} />
                 ))}

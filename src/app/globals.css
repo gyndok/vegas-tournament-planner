@@ -116,6 +116,21 @@
   --sidebar-ring: oklch(0.62 0.18 255);
 }
 
+/* ACR poker lobby scoped theme — overrides CSS vars inside .acr-lobby wrapper */
+.acr-lobby {
+  --background: oklch(0.10 0.005 240);
+  --foreground: oklch(0.88 0 0);
+  --card: oklch(0.13 0.005 240);
+  --card-foreground: oklch(0.88 0 0);
+  --muted: oklch(0.16 0.005 240);
+  --muted-foreground: oklch(0.55 0 0);
+  --border: oklch(0.20 0.005 240);
+  --accent: oklch(0.18 0.01 240);
+  --accent-foreground: oklch(0.92 0 0);
+  --acr-header-bg: oklch(0.14 0.005 240);
+  --acr-guarantee: oklch(0.72 0.20 145);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
