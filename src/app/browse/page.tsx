@@ -13,7 +13,8 @@ import { TournamentTableSkeleton } from '@/components/tournament-table-skeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AdUnit } from '@/components/ad-unit'
-import { RefreshCw, Info, LayoutGrid, Rows3 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { RefreshCw, Info, LayoutGrid, Rows3, Search } from 'lucide-react'
 
 function BrowseContent() {
   const { filters, resetFilters, batchSetFilters } = useTournamentFilters()
@@ -22,6 +23,7 @@ function BrowseContent() {
   const [prefsMode, setPrefsMode] = useState(false)
   const [prefsLoading, setPrefsLoading] = useState(false)
   const [viewMode, setViewMode] = useState<'classic' | 'lobby'>('classic')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Load view preference from localStorage
   useEffect(() => {
@@ -52,6 +54,15 @@ function BrowseContent() {
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [hasMore, loadingMore, loading, loadMore])
+
+  // Client-side name search filter
+  const filteredTournaments = searchQuery.trim()
+    ? tournaments.filter((t) => {
+        const words = searchQuery.toLowerCase().split(/\s+/)
+        const name = t.name.toLowerCase()
+        return words.every((word) => name.includes(word))
+      })
+    : tournaments
 
   const applyPreferences = useCallback(async () => {
     setPrefsLoading(true)
@@ -92,160 +103,171 @@ function BrowseContent() {
   }
 
   return (
-    <div className="flex gap-6 px-4 md:px-6 py-6">
-      {/* Desktop sidebar */}
-      <TournamentFilters />
-
-      {/* Main content */}
-      <div className="flex-1 min-w-0">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Browse Tournaments</h1>
-            {!loading && !error && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Showing {tournaments.length} of {totalCount} tournament{totalCount !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* View toggle — desktop only */}
-            <div className="hidden md:flex items-center gap-1 border border-border rounded-lg p-0.5">
-              <Button
-                variant={viewMode === 'classic' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 text-xs px-2.5 gap-1.5"
-                onClick={() => handleViewChange('classic')}
-              >
-                <LayoutGrid className="size-3.5" />
-                Classic
-              </Button>
-              <Button
-                variant={viewMode === 'lobby' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 text-xs px-2.5 gap-1.5"
-                onClick={() => handleViewChange('lobby')}
-              >
-                <Rows3 className="size-3.5" />
-                Lobby
-              </Button>
-            </div>
-
-            {/* Preferences toggle — only shown when logged in */}
-            {user && (
-              <Tabs
-                value={prefsMode ? 'preferences' : 'all'}
-                onValueChange={handleTabChange}
-              >
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="text-xs px-3">
-                    All
-                  </TabsTrigger>
-                  <TabsTrigger value="preferences" className="text-xs px-3" disabled={prefsLoading}>
-                    {prefsLoading ? 'Loading...' : 'My Preferences'}
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
-          </div>
+    <div className="px-4 md:px-6 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 gap-4">
+        <div className="shrink-0">
+          <h1 className="text-2xl font-bold">Browse Tournaments</h1>
+          {!loading && !error && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Showing {filteredTournaments.length} of {totalCount} tournament{totalCount !== 1 ? 's' : ''}
+            </p>
+          )}
         </div>
 
-        {/* Schedule accuracy disclaimer */}
-        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 mb-4">
-          <Info className="size-4 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground">
-            Schedules are sourced from venue websites and may change without notice. Always confirm details directly with the venue before making travel plans.
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search tournament names..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Filters dropdown */}
+          <TournamentFilters />
+
+          {/* View toggle — desktop only */}
+          <div className="hidden md:flex items-center gap-1 border border-border rounded-lg p-0.5">
+            <Button
+              variant={viewMode === 'classic' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-7 text-xs px-2.5 gap-1.5"
+              onClick={() => handleViewChange('classic')}
+            >
+              <LayoutGrid className="size-3.5" />
+              Classic
+            </Button>
+            <Button
+              variant={viewMode === 'lobby' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-7 text-xs px-2.5 gap-1.5"
+              onClick={() => handleViewChange('lobby')}
+            >
+              <Rows3 className="size-3.5" />
+              Lobby
+            </Button>
+          </div>
+
+          {/* Preferences toggle — only shown when logged in */}
+          {user && (
+            <Tabs
+              value={prefsMode ? 'preferences' : 'all'}
+              onValueChange={handleTabChange}
+            >
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs px-3">
+                  All
+                </TabsTrigger>
+                <TabsTrigger value="preferences" className="text-xs px-3" disabled={prefsLoading}>
+                  {prefsLoading ? 'Loading...' : 'My Preferences'}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+        </div>
+      </div>
+
+      {/* Schedule accuracy disclaimer */}
+      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 mb-4">
+        <Info className="size-4 text-amber-500 shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground">
+          Schedules are sourced from venue websites and may change without notice. Always confirm details directly with the venue before making travel plans.
+        </p>
+      </div>
+
+      {/* Initial Loading State */}
+      {loading && (
+        viewMode === 'lobby' ? (
+          <div className="hidden md:block"><TournamentTableSkeleton /></div>
+        ) : null
+      )}
+      {loading && (
+        <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <TournamentCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-muted-foreground mb-4">Something went wrong loading tournaments.</p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="gap-2"
+          >
+            <RefreshCw className="size-4" />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && filteredTournaments.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-muted-foreground mb-4">
+            {searchQuery.trim() ? 'No tournaments match your search.' : 'No tournaments match your filters.'}
           </p>
+          <Button variant="outline" onClick={() => { resetFilters(); setSearchQuery('') }}>
+            Reset Filters
+          </Button>
         </div>
+      )}
 
-        {/* Initial Loading State */}
-        {loading && (
-          viewMode === 'lobby' ? (
-            <div className="hidden md:block"><TournamentTableSkeleton /></div>
-          ) : null
-        )}
-        {loading && (
+      {/* Results */}
+      {!loading && !error && filteredTournaments.length > 0 && (
+        <div className="space-y-3">
+          {/* Lobby table view — desktop only */}
+          {viewMode === 'lobby' && (
+            <div className="hidden md:block">
+              <TournamentTable tournaments={filteredTournaments} />
+            </div>
+          )}
+
+          {/* Card view — always on mobile, on desktop when classic */}
           <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <TournamentCardSkeleton key={i} />
+            {filteredTournaments.map((tournament, index) => (
+              <div key={tournament.id}>
+                <TournamentCard tournament={tournament} />
+                {(index + 1) % 8 === 0 && (
+                  <div className="py-2">
+                    <AdUnit slot="3954139833" size="inline" channel="browse_feed" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-        )}
 
-        {/* Error State */}
-        {error && !loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-muted-foreground mb-4">Something went wrong loading tournaments.</p>
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="gap-2"
-            >
-              <RefreshCw className="size-4" />
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && tournaments.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-muted-foreground mb-4">No tournaments match your filters.</p>
-            <Button variant="outline" onClick={resetFilters}>
-              Reset Filters
-            </Button>
-          </div>
-        )}
-
-        {/* Results */}
-        {!loading && !error && tournaments.length > 0 && (
-          <div className="space-y-3">
-            {/* Lobby table view — desktop only */}
-            {viewMode === 'lobby' && (
-              <div className="hidden md:block">
-                <TournamentTable tournaments={tournaments} />
-              </div>
-            )}
-
-            {/* Card view — always on mobile, on desktop when classic */}
+          {/* Loading more skeletons */}
+          {loadingMore && viewMode === 'lobby' && (
+            <div className="hidden md:block"><TournamentTableSkeleton /></div>
+          )}
+          {loadingMore && (
             <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
-              {tournaments.map((tournament, index) => (
-                <div key={tournament.id}>
-                  <TournamentCard tournament={tournament} />
-                  {(index + 1) % 8 === 0 && (
-                    <div className="py-2">
-                      <AdUnit slot="BROWSE_INLINE_SLOT" size="inline" channel="browse_feed" />
-                    </div>
-                  )}
-                </div>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <TournamentCardSkeleton key={`skeleton-${i}`} />
               ))}
             </div>
+          )}
 
-            {/* Loading more skeletons */}
-            {loadingMore && viewMode === 'lobby' && (
-              <div className="hidden md:block"><TournamentTableSkeleton /></div>
-            )}
-            {loadingMore && (
-              <div className={viewMode === 'lobby' ? 'md:hidden space-y-3' : 'space-y-3'}>
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <TournamentCardSkeleton key={`skeleton-${i}`} />
-                ))}
-              </div>
-            )}
+          {/* Sentinel for Intersection Observer */}
+          {hasMore && <div ref={sentinelRef} className="h-4" />}
 
-            {/* Sentinel for Intersection Observer */}
-            {hasMore && <div ref={sentinelRef} className="h-4" />}
-
-            {/* End of results */}
-            {!hasMore && tournaments.length > 0 && (
-              <p className="text-center text-sm text-muted-foreground py-4">
-                All {totalCount} tournaments loaded
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+          {/* End of results */}
+          {!hasMore && filteredTournaments.length > 0 && (
+            <p className="text-center text-sm text-muted-foreground py-4">
+              All {totalCount} tournaments loaded
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -254,15 +276,12 @@ export default function BrowsePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex gap-6 px-4 md:px-6 py-6">
-          <div className="hidden md:block w-[280px] shrink-0" />
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-6">Browse Tournaments</h1>
-            <div className="space-y-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <TournamentCardSkeleton key={i} />
-              ))}
-            </div>
+        <div className="px-4 md:px-6 py-6">
+          <h1 className="text-2xl font-bold mb-6">Browse Tournaments</h1>
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <TournamentCardSkeleton key={i} />
+            ))}
           </div>
         </div>
       }

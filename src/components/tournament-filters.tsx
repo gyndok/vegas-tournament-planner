@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -352,13 +358,29 @@ export function TournamentFilters() {
 
   return (
     <>
-      {/* Desktop sidebar - hidden on mobile */}
-      <aside className="hidden md:block w-[280px] shrink-0">
-        <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto space-y-2 pr-2">
-          <h3 className="text-sm font-semibold text-foreground px-1">Filters</h3>
-          <FilterSections />
-        </div>
-      </aside>
+      {/* Desktop dropdown — replaces sidebar */}
+      <div className="hidden md:block">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <SlidersHorizontal className="size-4" />
+              Filters
+              {filterCount > 0 && (
+                <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-black">
+                  {filterCount}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-0">
+            <ScrollArea className="max-h-[70vh]">
+              <div className="p-4">
+                <FilterSections />
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* Mobile filter button + sheet */}
       <div className="md:hidden">

@@ -26,10 +26,10 @@ export function buildTournamentQuery(
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
   if (filters.seriesIds?.length) query = query.in('series_id', filters.seriesIds)
-  // Casino name filter — match series name containing casino keyword
+  // Casino filter — match series name OR venue containing casino keyword
   if (filters.casinos?.length) {
     const casinoFilters = filters.casinos
-      .map(c => `name.ilike.%${c}%`)
+      .flatMap(c => [`name.ilike.%${c}%`, `venue.ilike.%${c}%`])
       .join(',')
     query = query.or(casinoFilters, { referencedTable: 'series' })
   }
@@ -86,7 +86,7 @@ export function buildCountQuery(
 ) {
   // Use !inner join when casino filter is active so count excludes unmatched tournaments
   const seriesJoin = filters.casinos?.length
-    ? 'series:series_id!inner(name)'
+    ? 'series:series_id!inner(name, venue)'
     : 'series:series_id(name)'
   let query = supabase
     .from('tournaments')
@@ -95,10 +95,10 @@ export function buildCountQuery(
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom)
   if (filters.dateTo) query = query.lte('date', filters.dateTo)
   if (filters.seriesIds?.length) query = query.in('series_id', filters.seriesIds)
-  // Casino name filter
+  // Casino filter — match series name OR venue
   if (filters.casinos?.length) {
     const casinoFilters = filters.casinos
-      .map(c => `name.ilike.%${c}%`)
+      .flatMap(c => [`name.ilike.%${c}%`, `venue.ilike.%${c}%`])
       .join(',')
     query = query.or(casinoFilters, { referencedTable: 'series' })
   }

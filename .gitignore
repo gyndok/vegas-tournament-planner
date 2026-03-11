@@ -43,6 +43,11 @@ yarn-error.log*
 # firecrawl
 .firecrawl/
 
+# import scripts & schedule data (one-off data loading)
+import_*.js
+*_schedule.json
+*_import.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

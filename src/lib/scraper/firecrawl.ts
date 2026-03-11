@@ -33,9 +33,9 @@ export async function scrapeToMarkdown(url: string): Promise<string> {
 }
 
 /**
- * Search the web for a casino's tournament schedule and return the best
- * scraped markdown result. Uses Firecrawl's search endpoint which searches
- * AND scrapes results in one call — no extra round trips.
+ * Search the web for a casino's tournament schedule and scrape the best
+ * result. Uses Firecrawl's search endpoint to find URLs, then scrapes
+ * the top hit for markdown content.
  *
  * This is a fallback when hardcoded URLs fail (page moved, slug changed, etc).
  */
@@ -45,28 +45,30 @@ export async function searchAndScrape(
 ): Promise<string> {
   const app = getFirecrawlApp()
 
+  // Try PokerAtlas-specific search first
   const query = `${seriesName} ${venue} poker tournament schedule site:pokeratlas.com`
-
   const results = await app.search(query, { limit: 3 })
 
-  // results.data contains search results with markdown content
-  const hits = results.data || []
+  const hits = results.web || []
 
-  // Find the best result that has substantial markdown content
   for (const hit of hits) {
-    if (hit.markdown && hit.markdown.length > 200) {
-      return hit.markdown
+    const url = 'url' in hit ? hit.url : undefined
+    if (url) {
+      const markdown = await scrapeToMarkdown(url)
+      if (markdown.length > 200) return markdown
     }
   }
 
-  // If PokerAtlas-specific search returned nothing useful, try a broader search
+  // If PokerAtlas search returned nothing useful, try a broader search
   const broadQuery = `${seriesName} ${venue} tournament schedule`
   const broadResults = await app.search(broadQuery, { limit: 3 })
 
-  const broadHits = broadResults.data || []
+  const broadHits = broadResults.web || []
   for (const hit of broadHits) {
-    if (hit.markdown && hit.markdown.length > 200) {
-      return hit.markdown
+    const url = 'url' in hit ? hit.url : undefined
+    if (url) {
+      const markdown = await scrapeToMarkdown(url)
+      if (markdown.length > 200) return markdown
     }
   }
 
