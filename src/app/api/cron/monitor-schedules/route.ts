@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { scrapeToMarkdown } from '@/lib/scraper/firecrawl'
+import { scrapeToMarkdown, searchAndScrape } from '@/lib/scraper/firecrawl'
 import { normalizeScrapedMarkdown } from '@/lib/scraper/pipeline'
 import { CASINO_CONFIGS } from '@/lib/scraper/casino-configs'
 import {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   // 2. Process each casino
   for (const config of CASINO_CONFIGS) {
     try {
-      // 2a. Scrape
+      // 2a. Scrape (primary URL → fallback URL → search fallback)
       let markdown: string
       try {
         markdown = await scrapeToMarkdown(config.pokerAtlasUrl)
@@ -50,14 +50,20 @@ export async function GET(request: NextRequest) {
           try {
             markdown = await scrapeToMarkdown(config.fallbackUrl)
           } catch {
-            errors.push(`${config.colorKey}: scrape failed (primary + fallback)`)
+            // Fall through to search fallback
+          }
+        }
+
+        // @ts-expect-error — markdown may not be assigned yet
+        if (!markdown) {
+          try {
+            markdown = await searchAndScrape(config.seriesName, config.venue)
+          } catch {
+            errors.push(
+              `${config.colorKey}: all scrape methods failed — ${scrapeErr instanceof Error ? scrapeErr.message : 'Unknown'}`
+            )
             continue
           }
-        } else {
-          errors.push(
-            `${config.colorKey}: scrape failed — ${scrapeErr instanceof Error ? scrapeErr.message : 'Unknown'}`
-          )
-          continue
         }
       }
 

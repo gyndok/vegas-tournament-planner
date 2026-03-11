@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { isAdminEmail } from '@/lib/admin'
-import { scrapeToMarkdown } from '@/lib/scraper/firecrawl'
+import { scrapeToMarkdown, searchAndScrape } from '@/lib/scraper/firecrawl'
 import { normalizeScrapedMarkdown } from '@/lib/scraper/pipeline'
 import { getCasinoConfig, CASINO_CONFIGS } from '@/lib/scraper/casino-configs'
 
@@ -32,8 +32,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 1. Scrape PokerAtlas page
+    // 1. Scrape PokerAtlas page (primary URL → fallback URL → search fallback)
     let markdown: string
+    let usedSearch = false
     try {
       markdown = await scrapeToMarkdown(config.pokerAtlasUrl)
     } catch (scrapeErr) {
@@ -42,20 +43,25 @@ export async function POST(request: NextRequest) {
         try {
           markdown = await scrapeToMarkdown(config.fallbackUrl)
         } catch {
+          // Fall through to search fallback below
+        }
+      }
+
+      // @ts-expect-error — markdown may not be assigned yet if both URLs failed
+      if (!markdown) {
+        try {
+          markdown = await searchAndScrape(config.seriesName, config.venue)
+          usedSearch = true
+        } catch (searchErr) {
           return NextResponse.json(
             {
-              error: `Scraping failed for ${config.seriesName}. Primary: ${scrapeErr instanceof Error ? scrapeErr.message : 'Unknown'}`,
+              error: `All scraping methods failed for ${config.seriesName}. ` +
+                `Primary: ${scrapeErr instanceof Error ? scrapeErr.message : 'Unknown'}. ` +
+                `Search: ${searchErr instanceof Error ? searchErr.message : 'Unknown'}`,
             },
             { status: 500 }
           )
         }
-      } else {
-        return NextResponse.json(
-          {
-            error: `Scraping failed: ${scrapeErr instanceof Error ? scrapeErr.message : 'Unknown'}`,
-          },
-          { status: 500 }
-        )
       }
     }
 
@@ -210,6 +216,7 @@ export async function POST(request: NextRequest) {
       series_id: seriesId,
       totalScraped: rawRows.length,
       totalNormalized: normalizedTournaments.length,
+      usedSearch,
     })
   } catch (error) {
     console.error('Admin scrape error:', error)
