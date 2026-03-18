@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { X, Smartphone, BarChart3, Bot, Camera } from 'lucide-react'
+import { X, Smartphone, BarChart3, Bot, Camera, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const APP_STORE_URL =
@@ -97,20 +96,59 @@ export function AppPromoBanner({
     >
       <button
         onClick={() => setDismissed(true)}
-        className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted/60 text-muted-foreground/60 hover:text-muted-foreground transition-colors z-10"
+        className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 rounded-full hover:bg-muted/60 text-muted-foreground/60 hover:text-muted-foreground transition-colors z-10"
         aria-label="Dismiss"
       >
         <X className="size-4" />
       </button>
-      <CardContent className="flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-8">
-        {/* Icon / visual */}
-        <div className="flex shrink-0 size-20 sm:size-24 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-          <Smartphone className="size-10 sm:size-12 text-primary" />
+
+      {/* ── Mobile layout: compact horizontal card ── */}
+      <a
+        href={APP_STORE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="sm:hidden"
+      >
+        <CardContent className="flex items-center gap-3 p-4 pr-8">
+          <div className="flex shrink-0 size-14 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+            <Smartphone className="size-7 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-bold leading-tight truncate">
+                StackTrackerPro
+              </h3>
+              <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0">
+                Free
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+              Track sessions live with AI updates, coaching &amp; analytics.
+            </p>
+            <div className="flex items-center gap-3 mt-1.5">
+              {highlights.map((h) => (
+                <span
+                  key={h.label}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground"
+                >
+                  <h.icon className="size-2.5 text-primary/70" />
+                  <span className="truncate">{h.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <ChevronRight className="size-5 text-primary shrink-0" />
+        </CardContent>
+      </a>
+
+      {/* ── Desktop layout: full horizontal card ── */}
+      <CardContent className="hidden sm:flex sm:flex-row items-center gap-6 p-8">
+        <div className="flex shrink-0 size-24 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+          <Smartphone className="size-12 text-primary" />
         </div>
 
-        {/* Copy */}
-        <div className="flex-1 text-center sm:text-left space-y-2">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
+        <div className="flex-1 text-left space-y-2">
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold tracking-tight">
               StackTrackerPro
             </h3>
@@ -123,7 +161,7 @@ export function AppPromoBanner({
             games live with AI-powered updates, real-time coaching, video recaps,
             and deep analytics.
           </p>
-          <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             {highlights.map((h) => (
               <Badge
                 key={h.label}
@@ -137,7 +175,6 @@ export function AppPromoBanner({
           </div>
         </div>
 
-        {/* CTA */}
         <div className="flex flex-col items-center gap-2 shrink-0">
           <Button asChild size="lg">
             <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
