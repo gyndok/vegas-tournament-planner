@@ -98,9 +98,8 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
   return (
     <div
       className={cn(
-        'ad-unit overflow-hidden rounded-lg',
-        // Hide the wrapper entirely until an ad actually fills
-        adFilled ? 'bg-muted/30 border border-border/50' : 'h-0 overflow-hidden',
+        'ad-unit overflow-hidden rounded-lg transition-opacity duration-300',
+        adFilled ? 'bg-muted/30 border border-border/50 opacity-100' : 'opacity-0',
         className
       )}
     >

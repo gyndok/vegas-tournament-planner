@@ -30,7 +30,7 @@ export function AdProvider({ children }: AdProviderProps) {
   const { user } = useUser()
   const [adsReady, setAdsReady] = useState(false)
 
-  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || null
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-8776426212698680'
 
   // Check if user has Pro subscription (no ads)
   // For now this reads from user_metadata; expand when Stripe/billing is added
