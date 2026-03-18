@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { AppPromoBanner } from '@/components/app-promo-banner'
 import {
   Search,
   Calendar,
@@ -134,6 +135,11 @@ export function LandingPage({ tournamentCount, seriesCount }: LandingPageProps) 
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── App Promo ── */}
+      <section>
+        <AppPromoBanner variant="inline" />
       </section>
 
       {/* ── Final CTA ── */}

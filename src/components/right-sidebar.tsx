@@ -9,6 +9,7 @@ import { TodaysScheduleWidget } from '@/components/todays-schedule-widget'
 import { SeriesLegend } from '@/components/series-legend'
 import { QuickActions } from '@/components/quick-actions'
 import { AdUnit } from '@/components/ad-unit'
+import { AppPromoBanner } from '@/components/app-promo-banner'
 import { PanelRightClose, PanelRightOpen } from 'lucide-react'
 
 export function RightSidebar() {
@@ -45,6 +46,8 @@ export function RightSidebar() {
             <SeriesLegend />
             <Separator />
             <QuickActions />
+            <Separator />
+            <AppPromoBanner variant="sidebar" />
             <Separator />
             <AdUnit slot="9877859861" size="sidebar" channel="right_sidebar" />
           </div>
