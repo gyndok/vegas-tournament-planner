@@ -54,7 +54,7 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
   const { showAds, adsReady, publisherId } = useAds()
   const adRef = useRef<HTMLModElement>(null)
   const pushed = useRef(false)
-  const [adFilled, setAdFilled] = useState(false)
+  const [adStatus, setAdStatus] = useState<'loading' | 'filled' | 'unfilled'>('loading')
 
   useEffect(() => {
     if (!showAds || !adsReady || pushed.current) return
@@ -64,28 +64,31 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
       pushed.current = true
     } catch {
       // AdSense push failed — silently degrade
+      setAdStatus('unfilled')
     }
   }, [showAds, adsReady])
 
-  // Watch for AdSense actually filling the slot with a real ad.
-  // AdSense sets data-ad-status="filled" when an ad is served,
-  // and "unfilled" when no ad is available (e.g. site not approved yet).
+  // Watch for AdSense setting data-ad-status on the <ins> element.
+  // "filled" = ad served, "unfilled" = no ad available.
   useEffect(() => {
     if (!adRef.current || !pushed.current) return
 
-    const checkFilled = () => {
-      const el = adRef.current
-      if (el?.getAttribute('data-ad-status') === 'filled') {
-        setAdFilled(true)
+    const check = () => {
+      const status = adRef.current?.getAttribute('data-ad-status')
+      if (status === 'filled') {
+        setAdStatus('filled')
+        observer.disconnect()
+      } else if (status === 'unfilled') {
+        setAdStatus('unfilled')
         observer.disconnect()
       }
     }
 
-    const observer = new MutationObserver(checkFilled)
+    const observer = new MutationObserver(check)
     observer.observe(adRef.current, { attributes: true, attributeFilter: ['data-ad-status'] })
 
     // Check immediately in case it was already set
-    checkFilled()
+    check()
 
     return () => observer.disconnect()
   }, [adsReady])
@@ -93,17 +96,20 @@ export function AdUnit({ slot, size = 'responsive', channel, className }: AdUnit
   // Don't render anything if ads are disabled or not configured
   if (!showAds || !publisherId) return null
 
+  // Collapse completely if AdSense confirmed no ad available
+  if (adStatus === 'unfilled') return null
+
   const preset = SIZE_STYLES[size]
 
   return (
     <div
       className={cn(
-        'ad-unit overflow-hidden rounded-lg transition-opacity duration-300',
-        adFilled ? 'bg-muted/30 border border-border/50 opacity-100' : 'opacity-0',
+        'ad-unit overflow-hidden rounded-lg',
+        adStatus === 'filled' && 'bg-muted/30 border border-border/50',
         className
       )}
     >
-      {adFilled && (
+      {adStatus === 'filled' && (
         <div className="text-[10px] text-muted-foreground/50 text-center py-0.5 select-none">
           Advertisement
         </div>
