@@ -69,7 +69,7 @@ async function run() {
   const events = JSON.parse(fs.readFileSync("wsop_2026_side_events_schedule.json", "utf8")).events;
   const payload = events.map(t => ({
     series_id: seriesId,
-    event_number: t.event_number || null,
+    event_number: parseInt(t.event_number) || 0,
     name: t.name,
     date: t.date,
     day_of_week: t.day_of_week || "",
