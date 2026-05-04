@@ -139,5 +139,6 @@ export const SERIES_COLORS: Record<string, { bg: string; text: string; label: st
   'Golden Nugget': { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-400', label: 'Golden Nugget', dot: 'bg-orange-500', border: 'border-l-orange-500' },
   MGM: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', label: 'MGM Grand', dot: 'bg-purple-500', border: 'border-l-purple-500' },
   Orleans: { bg: 'bg-cyan-100 dark:bg-cyan-500/20', text: 'text-cyan-700 dark:text-cyan-400', label: 'Orleans', dot: 'bg-cyan-500', border: 'border-l-cyan-500' },
+  Southpoint: { bg: 'bg-pink-100 dark:bg-pink-500/20', text: 'text-pink-700 dark:text-pink-400', label: 'South Point', dot: 'bg-pink-500', border: 'border-l-pink-500' },
   default: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Other', dot: 'bg-gray-400', border: 'border-l-gray-400' },
 }
