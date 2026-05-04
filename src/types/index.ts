@@ -5,6 +5,7 @@ export interface Series {
   start_date: string
   end_date: string
   website_url: string | null
+  is_featured: boolean
   created_at: string
 }
 

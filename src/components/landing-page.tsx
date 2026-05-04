@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { AppPromoBanner } from '@/components/app-promo-banner'
+import { FeaturedSeriesGrid } from '@/components/featured-series-grid'
 import {
   Search,
   Calendar,
@@ -87,6 +88,9 @@ export function LandingPage({ tournamentCount, seriesCount }: LandingPageProps) 
           <p className="text-sm text-muted-foreground mt-1">Always</p>
         </div>
       </section>
+
+      {/* ── Featured Summer Series ── */}
+      <FeaturedSeriesGrid />
 
       {/* ── Feature Cards ── */}
       <section className="space-y-8">

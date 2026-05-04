@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AdUnit } from '@/components/ad-unit'
 import { ClosingSoonWidget } from '@/components/closing-soon-widget'
+import { FeaturedSeriesGrid } from '@/components/featured-series-grid'
 import {
   Calendar,
   Plane,
@@ -244,6 +245,9 @@ export function DashboardAuthenticated() {
 
       {/* 6. This Week's Schedule */}
       <WeekScheduleCard entries={weekEntries} />
+
+      {/* 6b. Featured Summer Series */}
+      <FeaturedSeriesGrid />
 
       {/* 7. Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
