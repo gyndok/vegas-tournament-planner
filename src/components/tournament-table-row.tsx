@@ -43,6 +43,14 @@ export function TournamentTableRow({ tournament }: TournamentTableRowProps) {
           <span className={`truncate font-medium ${started ? 'text-red-400' : 'text-emerald-400'}`}>
             {tournament.name}
           </span>
+          {tournament.event_category === 'bracelet' && (
+            <span
+              className="shrink-0 text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30"
+              title="WSOP bracelet event"
+            >
+              Bracelet
+            </span>
+          )}
           {tournament.is_flight && tournament.flight_label && (
             <span className="shrink-0 text-[10px] px-1 rounded bg-muted text-muted-foreground">
               F{tournament.flight_label}

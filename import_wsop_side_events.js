@@ -7,11 +7,10 @@ const fs = require("fs");
 const key = fs.readFileSync(".env.local", "utf8").match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/)[1];
 const supabase = createClient("https://ecultkmiqtdwkbtixjbk.supabase.co", key);
 
-const SERIES_NAME = "2026 WSOP - Side Events";
-const VENUE = "Horseshoe Las Vegas";
-const START_DATE = "2026-05-26";
-const END_DATE = "2026-07-14";
-const WEBSITE = "https://www.wsop.com/tournaments/2026-57th-annual-world-series-of-poker/";
+// Side events are now stored under the unified "2026 World Series of Poker" series
+// with event_category = 'side' (bracelets are 'bracelet'). The series row is
+// pre-existing; this script only inserts/replaces the side-event tournament rows.
+const WSOP_SERIES_ID = "a0000000-0000-0000-0000-000000000001";
 
 const OVERWRITE = process.argv.includes("--overwrite");
 
@@ -27,48 +26,39 @@ function convertTime(t) {
 }
 
 async function run() {
-  // 1) Find or create series
-  const { data: existing, error: fe } = await supabase
+  // 1) Verify the WSOP series exists, then count existing side events
+  const { data: series, error: fe } = await supabase
     .from("series")
-    .select("id")
-    .eq("name", SERIES_NAME)
+    .select("id, name")
+    .eq("id", WSOP_SERIES_ID)
     .maybeSingle();
   if (fe) { console.error("Series lookup error:", fe.message); process.exit(1); }
+  if (!series) { console.error(`WSOP series row ${WSOP_SERIES_ID} not found.`); process.exit(1); }
 
-  let seriesId;
-  if (existing) {
-    seriesId = existing.id;
-    const { count } = await supabase
-      .from("tournaments")
-      .select("*", { count: "exact", head: true })
-      .eq("series_id", seriesId);
-    if (count && count > 0) {
-      if (!OVERWRITE) {
-        console.error(`Series "${SERIES_NAME}" already has ${count} tournaments. Re-run with --overwrite to replace.`);
-        process.exit(1);
-      }
-      const { error: de } = await supabase.from("tournaments").delete().eq("series_id", seriesId);
-      if (de) { console.error("Delete error:", de.message); process.exit(1); }
-      console.log(`Deleted ${count} existing tournaments for overwrite.`);
+  const { count } = await supabase
+    .from("tournaments")
+    .select("*", { count: "exact", head: true })
+    .eq("series_id", WSOP_SERIES_ID)
+    .eq("event_category", "side");
+  if (count && count > 0) {
+    if (!OVERWRITE) {
+      console.error(`WSOP already has ${count} side-event tournaments. Re-run with --overwrite to replace.`);
+      process.exit(1);
     }
-    console.log("Reusing existing series:", seriesId);
-  } else {
-    const { data: s, error: se } = await supabase.from("series").insert({
-      name: SERIES_NAME,
-      venue: VENUE,
-      start_date: START_DATE,
-      end_date: END_DATE,
-      website_url: WEBSITE
-    }).select("id").single();
-    if (se) { console.error("Series create error:", se.message); process.exit(1); }
-    seriesId = s.id;
-    console.log("Created series:", seriesId);
+    const { error: de } = await supabase
+      .from("tournaments")
+      .delete()
+      .eq("series_id", WSOP_SERIES_ID)
+      .eq("event_category", "side");
+    if (de) { console.error("Delete error:", de.message); process.exit(1); }
+    console.log(`Deleted ${count} existing side-event tournaments for overwrite.`);
   }
 
   // 2) Load and map events
   const events = JSON.parse(fs.readFileSync("wsop_2026_side_events_schedule.json", "utf8")).events;
   const payload = events.map(t => ({
-    series_id: seriesId,
+    series_id: WSOP_SERIES_ID,
+    event_category: "side",
     event_number: parseInt(t.event_number) || 0,
     name: t.name,
     date: t.date,

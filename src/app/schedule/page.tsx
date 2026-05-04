@@ -54,6 +54,7 @@ export default function SchedulePage() {
       parent_event_number: null,
       estimated_duration_hours: null,
       notes: null,
+      event_category: null,
       created_at: ct.created_at,
       series: { id: '', name: ct.venue_name, venue: ct.venue_name, start_date: '', end_date: '', website_url: null, is_featured: false, created_at: ct.created_at },
     },

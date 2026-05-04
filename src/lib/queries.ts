@@ -38,6 +38,7 @@ export function buildTournamentQuery(
   if (filters.gameTypes?.length) query = query.in('game_type', filters.gameTypes)
   if (filters.formats?.length) query = query.in('format', filters.formats)
   if (filters.tableSizes?.length) query = query.in('table_size', filters.tableSizes)
+  if (filters.eventCategories?.length) query = query.in('event_category', filters.eventCategories)
   if (filters.startTimeFrom) query = query.gte('start_time', filters.startTimeFrom)
   if (filters.startTimeTo) query = query.lte('start_time', filters.startTimeTo)
 
@@ -107,6 +108,7 @@ export function buildCountQuery(
   if (filters.gameTypes?.length) query = query.in('game_type', filters.gameTypes)
   if (filters.formats?.length) query = query.in('format', filters.formats)
   if (filters.tableSizes?.length) query = query.in('table_size', filters.tableSizes)
+  if (filters.eventCategories?.length) query = query.in('event_category', filters.eventCategories)
   if (filters.startTimeFrom) query = query.gte('start_time', filters.startTimeFrom)
   if (filters.startTimeTo) query = query.lte('start_time', filters.startTimeTo)
   if (filters.avoidTurbos) {

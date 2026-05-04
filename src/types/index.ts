@@ -31,6 +31,7 @@ export interface Tournament {
   parent_event_number: number | null
   estimated_duration_hours: number | null
   notes: string | null
+  event_category: 'bracelet' | 'side' | null
   created_at: string
   series?: Series
 }
@@ -107,6 +108,7 @@ export interface TournamentFilters {
   gameTypes?: string[]
   formats?: string[]
   tableSizes?: number[]
+  eventCategories?: ('bracelet' | 'side')[]
   startTimeFrom?: string    // e.g. "10:00"
   startTimeTo?: string      // e.g. "20:00"
   avoidTurbos?: boolean

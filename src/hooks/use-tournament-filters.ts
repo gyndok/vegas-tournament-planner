@@ -17,6 +17,7 @@ export function useTournamentFilters() {
     gameTypes: searchParams.getAll('gameType').filter(Boolean),
     formats: searchParams.getAll('format').filter(Boolean),
     tableSizes: searchParams.getAll('tableSize').map(Number).filter(Boolean),
+    eventCategories: searchParams.getAll('eventCategory').filter((v): v is 'bracelet' | 'side' => v === 'bracelet' || v === 'side'),
     startTimeFrom: searchParams.get('startTimeFrom') || undefined,
     startTimeTo: searchParams.get('startTimeTo') || undefined,
     avoidTurbos: searchParams.get('avoidTurbos') === 'true',
@@ -70,6 +71,7 @@ export function useTournamentFilters() {
     if (filters.gameTypes?.length) count++
     if (filters.formats?.length) count++
     if (filters.tableSizes?.length) count++
+    if (filters.eventCategories?.length) count++
     if (filters.startTimeFrom || filters.startTimeTo) count++
     if (filters.avoidTurbos) count++
     if (filters.casinos?.length) count++

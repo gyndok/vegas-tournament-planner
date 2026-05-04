@@ -23,11 +23,21 @@ export function TournamentCard({ tournament }: TournamentCardProps) {
         <CardContent className="p-4 space-y-3">
           {/* Top row: Series badge + Event number + Quick add */}
           <div className="flex items-center justify-between">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${seriesColor.bg} ${seriesColor.text}`}
-            >
-              {seriesColor.label}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${seriesColor.bg} ${seriesColor.text}`}
+              >
+                {seriesColor.label}
+              </span>
+              {tournament.event_category === 'bracelet' && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                  title="WSOP bracelet event"
+                >
+                  Bracelet
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted-foreground">
                 #{tournament.event_number}

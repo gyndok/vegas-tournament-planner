@@ -82,6 +82,14 @@ function FilterSections() {
     setFilter('format', next.length > 0 ? next : null)
   }
 
+  const toggleEventCategory = (category: 'bracelet' | 'side') => {
+    const current = filters.eventCategories || []
+    const next = current.includes(category)
+      ? current.filter(c => c !== category)
+      : [...current, category]
+    setFilter('eventCategory', next.length > 0 ? next : null)
+  }
+
   const CASINO_KEYS = Object.keys(SERIES_COLORS).filter(k => k !== 'default')
 
   const toggleCasino = (casino: string) => {
@@ -265,6 +273,30 @@ function FilterSections() {
               {game}
             </Badge>
           ))}
+        </div>
+      </div>
+
+      {/* Event Type (WSOP bracelet/side) */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Event Type</h4>
+        <div className="flex flex-wrap gap-1.5">
+          {(['bracelet', 'side'] as const).map((category) => {
+            const isSelected = (filters.eventCategories || []).includes(category)
+            return (
+              <Badge
+                key={category}
+                variant={isSelected ? 'default' : 'outline'}
+                className={`cursor-pointer text-xs select-none capitalize ${
+                  isSelected && category === 'bracelet'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                    : ''
+                }`}
+                onClick={() => toggleEventCategory(category)}
+              >
+                {category === 'bracelet' ? 'Bracelet' : 'Side Event'}
+              </Badge>
+            )
+          })}
         </div>
       </div>
 
