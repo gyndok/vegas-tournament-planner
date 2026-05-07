@@ -90,6 +90,11 @@ function FilterSections() {
     setFilter('eventCategory', next.length > 0 ? next : null)
   }
 
+  const toggleNumericMin = (paramKey: string, currentValue: number | undefined, value: number) => {
+    const next = currentValue === value ? null : String(value)
+    setFilter(paramKey, next)
+  }
+
   const CASINO_KEYS = Object.keys(SERIES_COLORS).filter(k => k !== 'default')
 
   const toggleCasino = (casino: string) => {
@@ -312,6 +317,40 @@ function FilterSections() {
               onClick={() => toggleFormat(format)}
             >
               {format}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Starting Stack */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Starting Stack</h4>
+        <div className="flex flex-wrap gap-1.5">
+          {[10000, 20000, 30000, 50000].map((value) => (
+            <Badge
+              key={value}
+              variant={filters.startingStackMin === value ? 'default' : 'outline'}
+              className="cursor-pointer text-xs select-none"
+              onClick={() => toggleNumericMin('startingStackMin', filters.startingStackMin, value)}
+            >
+              {(value / 1000).toLocaleString()}K+
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Blind Levels */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Blind Levels</h4>
+        <div className="flex flex-wrap gap-1.5">
+          {[20, 30, 40, 60].map((value) => (
+            <Badge
+              key={value}
+              variant={filters.blindLevelsMinutesMin === value ? 'default' : 'outline'}
+              className="cursor-pointer text-xs select-none"
+              onClick={() => toggleNumericMin('blindLevelsMinutesMin', filters.blindLevelsMinutesMin, value)}
+            >
+              {value}+ min
             </Badge>
           ))}
         </div>

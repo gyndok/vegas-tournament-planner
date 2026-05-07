@@ -22,6 +22,8 @@ function buildSearchParams(filters: TournamentFilters, cursor?: string): URLSear
   filters.formats?.forEach(f => params.append('format', f))
   filters.tableSizes?.forEach(t => params.append('tableSize', String(t)))
   filters.eventCategories?.forEach(c => params.append('eventCategory', c))
+  if (filters.startingStackMin !== undefined) params.set('startingStackMin', String(filters.startingStackMin))
+  if (filters.blindLevelsMinutesMin !== undefined) params.set('blindLevelsMinutesMin', String(filters.blindLevelsMinutesMin))
   if (filters.sortBy) params.set('sortBy', filters.sortBy)
   if (filters.startTimeFrom) params.set('startTimeFrom', filters.startTimeFrom)
   if (filters.startTimeTo) params.set('startTimeTo', filters.startTimeTo)
@@ -93,7 +95,8 @@ export function useInfiniteTournaments(filters: TournamentFilters): UseInfiniteT
   }, [filters.dateFrom, filters.dateTo, filters.buyInMin, filters.buyInMax,
       gameTypes, formats, tableSizes, casinos, eventCategories, filters.sortBy,
       filters.startTimeFrom, filters.startTimeTo, filters.avoidTurbos,
-      filters.hasGuarantee, filters.guaranteeMin, filters.guaranteeMax])
+      filters.hasGuarantee, filters.guaranteeMin, filters.guaranteeMax,
+      filters.startingStackMin, filters.blindLevelsMinutesMin])
 
   // Load more function
   const loadMore = useCallback(async () => {

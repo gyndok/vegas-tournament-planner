@@ -41,6 +41,8 @@ export function buildTournamentQuery(
   if (filters.eventCategories?.length) query = query.in('event_category', filters.eventCategories)
   if (filters.startTimeFrom) query = query.gte('start_time', filters.startTimeFrom)
   if (filters.startTimeTo) query = query.lte('start_time', filters.startTimeTo)
+  if (filters.startingStackMin !== undefined) query = query.gte('starting_stack', filters.startingStackMin)
+  if (filters.blindLevelsMinutesMin !== undefined) query = query.gte('blind_levels_minutes', filters.blindLevelsMinutesMin)
 
   // Turbo exclusion
   if (filters.avoidTurbos) {
@@ -111,6 +113,8 @@ export function buildCountQuery(
   if (filters.eventCategories?.length) query = query.in('event_category', filters.eventCategories)
   if (filters.startTimeFrom) query = query.gte('start_time', filters.startTimeFrom)
   if (filters.startTimeTo) query = query.lte('start_time', filters.startTimeTo)
+  if (filters.startingStackMin !== undefined) query = query.gte('starting_stack', filters.startingStackMin)
+  if (filters.blindLevelsMinutesMin !== undefined) query = query.gte('blind_levels_minutes', filters.blindLevelsMinutesMin)
   if (filters.avoidTurbos) {
     query = query.not('format', 'ilike', '%turbo%')
   }

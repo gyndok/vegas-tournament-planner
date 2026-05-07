@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     formats: searchParams.getAll('format').filter(Boolean),
     tableSizes: searchParams.getAll('tableSize').map(Number).filter(Boolean),
     eventCategories: searchParams.getAll('eventCategory').filter((v): v is 'bracelet' | 'side' => v === 'bracelet' || v === 'side'),
+    startingStackMin: searchParams.get('startingStackMin') ? Number(searchParams.get('startingStackMin')) : undefined,
+    blindLevelsMinutesMin: searchParams.get('blindLevelsMinutesMin') ? Number(searchParams.get('blindLevelsMinutesMin')) : undefined,
     startTimeFrom: searchParams.get('startTimeFrom') || undefined,
     startTimeTo: searchParams.get('startTimeTo') || undefined,
     avoidTurbos: searchParams.get('avoidTurbos') === 'true',

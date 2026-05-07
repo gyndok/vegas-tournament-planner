@@ -111,6 +111,8 @@ export interface TournamentFilters {
   eventCategories?: ('bracelet' | 'side')[]
   startTimeFrom?: string    // e.g. "10:00"
   startTimeTo?: string      // e.g. "20:00"
+  startingStackMin?: number
+  blindLevelsMinutesMin?: number
   avoidTurbos?: boolean
   hasGuarantee?: boolean
   guaranteeMin?: number
