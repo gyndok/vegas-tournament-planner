@@ -444,7 +444,7 @@ export function TournamentFilters() {
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-80 p-0">
-            <ScrollArea className="max-h-[70vh]">
+            <ScrollArea className="h-[80vh]">
               <div className="p-4">
                 <FilterSections />
               </div>
