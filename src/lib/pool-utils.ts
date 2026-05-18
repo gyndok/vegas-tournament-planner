@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { PoolAuditAction, PoolMember } from '@/types'
+import type { PoolAuditAction, PoolMember, PoolStatus } from '@/types'
 
 /**
  * Cryptographically random invite token, 256 bits, base64url-encoded.
@@ -79,4 +79,17 @@ export function annotateBustOrder(members: PoolMember[]): PoolMember[] {
     if (m.status !== 'busted') m.bust_order = null
     return m
   })
+}
+
+const ALLOWED_TRANSITIONS: Record<PoolStatus, PoolStatus[]> = {
+  draft:     ['open', 'cancelled'],
+  open:      ['locked', 'cancelled'],
+  locked:    ['live', 'cancelled'],
+  live:      ['ended', 'cancelled'],
+  ended:     [],
+  cancelled: [],
+}
+
+export function canTransition(from: PoolStatus, to: PoolStatus): boolean {
+  return ALLOWED_TRANSITIONS[from]?.includes(to) ?? false
 }
