@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/use-user'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Info } from 'lucide-react'
 
 interface PoolMeta {
   id: string
@@ -56,6 +57,20 @@ export default function PoolJoinPage({ params }: { params: Promise<{ token: stri
   return (
     <div className="mx-auto max-w-md px-4 py-12 space-y-6">
       <h1 className="text-2xl font-bold">Join Last Longer Pool</h1>
+      <a
+        href="/faq#last-longer-pools"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-start gap-2 rounded-md border border-primary/40 bg-primary/5 p-3 text-sm hover:bg-primary/10"
+      >
+        <Info className="size-4 mt-0.5 shrink-0 text-primary" />
+        <span>
+          <span className="font-medium text-foreground">How Last Longer Pools work.</span>{' '}
+          <span className="text-muted-foreground">
+            NextRebuy tracks the standings — it doesn&apos;t handle money. Settle buy-ins and payouts directly with the pool organizer.
+          </span>
+        </span>
+      </a>
       <div className="rounded-xl border border-border p-4 space-y-2">
         <div className="text-lg font-semibold">{meta.name}</div>
         <div className="text-sm text-muted-foreground">{tournamentLine}</div>

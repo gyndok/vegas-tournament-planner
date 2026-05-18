@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Info } from 'lucide-react'
 
 interface Props {
   tournamentId?: string
@@ -58,6 +59,20 @@ export function PoolCreateModal({ tournamentId, customTournamentId, defaultName,
       <DialogContent>
         <DialogHeader><DialogTitle>New Last Longer Pool</DialogTitle></DialogHeader>
         <div className="space-y-3">
+          <a
+            href="/faq#last-longer-pools"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-2 rounded-md border border-primary/40 bg-primary/5 p-3 text-sm hover:bg-primary/10"
+          >
+            <Info className="size-4 mt-0.5 shrink-0 text-primary" />
+            <span>
+              <span className="font-medium text-foreground">New to Last Longer Pools?</span>{' '}
+              <span className="text-muted-foreground">
+                Read how they work and what organizers handle (NextRebuy doesn&apos;t collect or pay out money — all buy-ins and payouts are handled by you outside the app).
+              </span>
+            </span>
+          </a>
           <label className="block text-sm">
             Pool name
             <Input value={name} onChange={e => setName(e.target.value)} />
