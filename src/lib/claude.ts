@@ -6,6 +6,37 @@ export const anthropic = new Anthropic({
 
 export const CHAT_MODEL = 'claude-sonnet-4-6'
 
+/**
+ * Per-token prices for the current CHAT_MODEL, in USD. Keep these in sync if
+ * the model is ever swapped — they're used both for the daily cost gate and
+ * for the admin Stats tab AI usage section.
+ *
+ * Source: Anthropic public pricing (per 1M tokens):
+ *   Sonnet 4.6  input $3.00  output $15.00  cache write $3.75  cache read $0.30
+ */
+export const CHAT_PRICING = {
+  inputPerToken: 3.0 / 1_000_000,
+  outputPerToken: 15.0 / 1_000_000,
+  cacheWritePerToken: 3.75 / 1_000_000,
+  cacheReadPerToken: 0.3 / 1_000_000,
+}
+
+export interface AnthropicUsage {
+  input_tokens: number
+  output_tokens: number
+  cache_creation_input_tokens?: number | null
+  cache_read_input_tokens?: number | null
+}
+
+export function computeUsageCost(usage: AnthropicUsage): number {
+  return (
+    (usage.input_tokens ?? 0) * CHAT_PRICING.inputPerToken +
+    (usage.output_tokens ?? 0) * CHAT_PRICING.outputPerToken +
+    (usage.cache_creation_input_tokens ?? 0) * CHAT_PRICING.cacheWritePerToken +
+    (usage.cache_read_input_tokens ?? 0) * CHAT_PRICING.cacheReadPerToken
+  )
+}
+
 export function buildSystemPrompt(currentTime: string, userPreferences?: Record<string, unknown> | null) {
   return `You are the Vegas Tournament Planner AI assistant. You help poker players find and plan tournaments across Las Vegas poker festivals.
 
@@ -35,6 +66,10 @@ Guidelines:
 - You can suggest multiple options for different preferences`
 }
 
+// The last tool carries a cache_control marker. With Anthropic prompt caching,
+// the prefix up to and including the marked block is cached and re-read at 10%
+// cost. Since system + tools sit before messages, this caches both. ~40% per-
+// turn cost reduction once the cache is warm (5-minute TTL).
 export const TOOL_DEFINITIONS: Anthropic.Messages.Tool[] = [
   {
     name: 'search_tournaments',
@@ -51,7 +86,7 @@ export const TOOL_DEFINITIONS: Anthropic.Messages.Tool[] = [
         start_time_from: { type: 'string', description: 'Earliest start time (HH:MM, 24h)' },
         start_time_to: { type: 'string', description: 'Latest start time (HH:MM, 24h)' },
         sort_by: { type: 'string', enum: ['date', 'buy_in_asc', 'buy_in_desc', 'guarantee_desc'] },
-        limit: { type: 'number', description: 'Max results (default: 20)' },
+        limit: { type: 'number', description: 'Max results (default: 10)' },
       },
       required: [],
     },
@@ -64,5 +99,6 @@ export const TOOL_DEFINITIONS: Anthropic.Messages.Tool[] = [
       properties: {},
       required: [],
     },
+    cache_control: { type: 'ephemeral' },
   },
 ]

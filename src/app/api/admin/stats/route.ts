@@ -55,6 +55,18 @@ interface StatsResponse {
     totalSeries: number
     topVenuesByAdds: VenueAdds[]
   }
+  ai: {
+    today: {
+      date: string
+      requests: number
+      costUsd: number
+      capUsd: number
+      capRemainingUsd: number
+    }
+    last30dCostUsd: number
+    last30dRequests: number
+    cacheHitRate: number | null
+  }
   notes: {
     dauCaveat: string
     trafficLink: string
@@ -217,6 +229,56 @@ export async function GET(_req: NextRequest) {
     .sort((a, b) => b.adds - a.adds)
     .slice(0, 10)
 
+  // ---------- AI usage ----------
+  const todayDate = new Date().toISOString().slice(0, 10)
+  const thirtyAgo = new Date()
+  thirtyAgo.setUTCDate(thirtyAgo.getUTCDate() - 30)
+  const thirtyAgoDate = thirtyAgo.toISOString().slice(0, 10)
+
+  const { data: usageRows } = await svc
+    .from('chat_usage')
+    .select('date, request_count, input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens, cost_usd')
+    .gte('date', thirtyAgoDate)
+
+  const todayRow = usageRows?.find(r => r.date === todayDate)
+  const last30Cost = (usageRows ?? []).reduce(
+    (sum, r) => sum + Number(r.cost_usd ?? 0),
+    0
+  )
+  const last30Requests = (usageRows ?? []).reduce(
+    (sum, r) => sum + Number(r.request_count ?? 0),
+    0
+  )
+  // Cache hit rate over the last 30d: cache_read / (cache_read + input_tokens).
+  // input_tokens here is the uncached input, so this denominator is "total
+  // input prompt tokens" minus the cache-write count we paid full price for.
+  const totalCacheRead = (usageRows ?? []).reduce(
+    (sum, r) => sum + Number(r.cache_read_input_tokens ?? 0),
+    0
+  )
+  const totalUncachedInput = (usageRows ?? []).reduce(
+    (sum, r) => sum + Number(r.input_tokens ?? 0),
+    0
+  )
+  const cacheDenom = totalCacheRead + totalUncachedInput
+  const cacheHitRate = cacheDenom > 0 ? totalCacheRead / cacheDenom : null
+
+  const capRaw = Number(process.env.CHAT_DAILY_COST_CAP_USD ?? '50')
+  const capUsd = Number.isFinite(capRaw) && capRaw > 0 ? capRaw : 50
+  const todayCost = Number(todayRow?.cost_usd ?? 0)
+  const aiStats = {
+    today: {
+      date: todayDate,
+      requests: Number(todayRow?.request_count ?? 0),
+      costUsd: todayCost,
+      capUsd,
+      capRemainingUsd: Math.max(0, capUsd - todayCost),
+    },
+    last30dCostUsd: last30Cost,
+    last30dRequests: last30Requests,
+    cacheHitRate,
+  }
+
   const response: StatsResponse = {
     generatedAt: now.toISOString(),
     users: {
@@ -252,6 +314,7 @@ export async function GET(_req: NextRequest) {
       totalSeries: seriesCountRes.count ?? 0,
       topVenuesByAdds,
     },
+    ai: aiStats,
     notes: {
       dauCaveat:
         'DAU/WAU/MAU is based on auth last_sign_in_at, which only updates on token refresh (~hourly). It is a lower-bound proxy, not a true page-view metric — see Vercel Analytics for traffic.',

@@ -50,6 +50,18 @@ interface StatsResponse {
     totalSeries: number
     topVenuesByAdds: VenueAdds[]
   }
+  ai: {
+    today: {
+      date: string
+      requests: number
+      costUsd: number
+      capUsd: number
+      capRemainingUsd: number
+    }
+    last30dCostUsd: number
+    last30dRequests: number
+    cacheHitRate: number | null
+  }
   notes: {
     dauCaveat: string
     trafficLink: string
@@ -351,6 +363,47 @@ export default function StatsTab() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      {/* ---- AI Advisor usage ---- */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          AI Advisor (Claude)
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Kpi
+            label="Today"
+            value={formatMoney(Math.round(stats.ai.today.costUsd * 100) / 100)}
+            sub={`${formatNumber(stats.ai.today.requests)} requests`}
+          />
+          <Kpi
+            label="Daily cap"
+            value={formatMoney(stats.ai.today.capUsd)}
+            sub={`$${stats.ai.today.capRemainingUsd.toFixed(2)} remaining`}
+          />
+          <Kpi
+            label="Last 30d cost"
+            value={formatMoney(Math.round(stats.ai.last30dCostUsd * 100) / 100)}
+          />
+          <Kpi
+            label="Last 30d requests"
+            value={formatNumber(stats.ai.last30dRequests)}
+          />
+          <Kpi
+            label="Cache hit rate"
+            value={
+              stats.ai.cacheHitRate === null
+                ? '—'
+                : formatPercent(stats.ai.cacheHitRate)
+            }
+            sub="cached / total prompt tokens (30d)"
+          />
+        </div>
+        {stats.ai.today.costUsd >= stats.ai.today.capUsd && (
+          <p className="text-sm text-destructive">
+            Daily cap reached. AI Advisor is paused until tomorrow.
+          </p>
+        )}
       </section>
 
       {/* ---- Traffic stub ---- */}
