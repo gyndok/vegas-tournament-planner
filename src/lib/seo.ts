@@ -50,6 +50,7 @@ export function websiteJsonLd() {
 
 interface EventJsonLdInput {
   id: string
+  slug?: string | null
   name: string
   date: string // YYYY-MM-DD
   start_time: string // HH:MM (24h)
@@ -91,14 +92,14 @@ export function tournamentEventJsonLd(t: EventJsonLdInput) {
       '@type': 'Organization',
       name: seriesName,
     },
-    url: `${SITE_URL}/tournament/${t.id}`,
+    url: `${SITE_URL}/tournament/${t.slug ?? t.id}`,
     ...(t.buy_in != null && {
       offers: {
         '@type': 'Offer',
         price: t.buy_in,
         priceCurrency: 'USD',
         availability: 'https://schema.org/InStock',
-        url: `${SITE_URL}/tournament/${t.id}`,
+        url: `${SITE_URL}/tournament/${t.slug ?? t.id}`,
       },
     }),
     ...(t.guaranteed_prize != null && {

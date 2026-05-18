@@ -129,7 +129,7 @@ export function DashboardScheduleSummary() {
           <div className="border-t border-border pt-3">
             <div className="text-xs text-muted-foreground mb-1">Next Up</div>
             <Link
-              href={`/tournament/${nextEvent.tournament.id}`}
+              href={`/tournament/${nextEvent.tournament.slug ?? nextEvent.tournament.id}`}
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
               {nextEvent.tournament.name}

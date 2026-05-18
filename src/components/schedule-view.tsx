@@ -146,7 +146,7 @@ export function ScheduleView({ entries, onUpdateEntry, onRemoveEntry }: Schedule
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Link
-                              href={`/tournament/${t.id}`}
+                              href={`/tournament/${t.slug ?? t.id}`}
                               className="font-medium text-sm hover:text-primary transition-colors truncate"
                             >
                               {t.name}

@@ -34,6 +34,7 @@ export default function SchedulePage() {
     created_at: ct.created_at,
     tournament: {
       id: ct.id,
+      slug: `custom-${ct.id}`,
       series_id: '',
       event_number: 0,
       name: ct.name,

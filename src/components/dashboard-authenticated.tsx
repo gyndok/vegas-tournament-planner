@@ -468,7 +468,7 @@ function TodayScheduleCard({
               return (
                 <Link
                   key={entry.id}
-                  href={`/tournament/${t.id}`}
+                  href={`/tournament/${t.slug ?? t.id}`}
                   className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-accent"
                 >
                   <div className={`size-2 rounded-full shrink-0 ${colors.dot}`} />
@@ -542,7 +542,7 @@ function WeekScheduleCard({
               return (
                 <Link
                   key={entry.id}
-                  href={`/tournament/${t.id}`}
+                  href={`/tournament/${t.slug ?? t.id}`}
                   className="flex items-center gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-accent"
                 >
                   <div className={`size-2 rounded-full shrink-0 ${colors.dot}`} />

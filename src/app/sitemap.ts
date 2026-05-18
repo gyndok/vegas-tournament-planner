@@ -33,18 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const svc = createAdminClient()
     const { data: tournaments } = await svc
       .from('tournaments')
-      .select('id, date')
+      .select('slug, date')
       .gte('date', new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10))
       .order('date', { ascending: true })
 
-    const tournamentEntries: MetadataRoute.Sitemap = (tournaments ?? []).map(
-      (t) => ({
-        url: `${SITE_URL}/tournament/${t.id}`,
+    const tournamentEntries: MetadataRoute.Sitemap = (tournaments ?? [])
+      .filter((t) => !!t.slug)
+      .map((t) => ({
+        url: `${SITE_URL}/tournament/${t.slug}`,
         lastModified,
         changeFrequency: 'weekly' as const,
         priority: 0.7,
-      })
-    )
+      }))
 
     return [...staticEntries, ...tournamentEntries]
   } catch (err) {

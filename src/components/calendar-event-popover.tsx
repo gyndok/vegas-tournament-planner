@@ -62,7 +62,7 @@ export function CalendarEventPopover({
           {/* Header */}
           <div>
             <Link
-              href={`/tournament/${t.id}`}
+              href={`/tournament/${t.slug ?? t.id}`}
               className="font-medium text-sm hover:text-primary transition-colors leading-tight"
               onClick={() => setOpen(false)}
             >

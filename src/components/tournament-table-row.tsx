@@ -29,7 +29,7 @@ export function TournamentTableRow({ tournament }: TournamentTableRowProps) {
   return (
     <tr
       className="border-b border-white/20 hover:bg-accent transition-colors cursor-pointer text-xs even:bg-muted/20"
-      onClick={() => router.push(`/tournament/${tournament.id}`)}
+      onClick={() => router.push(`/tournament/${tournament.slug ?? tournament.id}`)}
     >
       <td className="px-3 py-2 whitespace-nowrap text-white/80">
         {formatDate(tournament.date)}

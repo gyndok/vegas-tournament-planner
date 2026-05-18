@@ -111,7 +111,7 @@ export function TripDayCard({
                   key={entry.id}
                   className={`flex items-center justify-between rounded-lg border-l-4 ${colors.border} bg-muted/50 p-3`}
                 >
-                  <Link href={`/tournament/${t.id}`} className="flex-1 min-w-0">
+                  <Link href={`/tournament/${t.slug ?? t.id}`} className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-muted-foreground">{formatTime(t.start_time)}</span>
                       <Badge variant="outline" className={`text-[10px] ${colors.bg} ${colors.text} border-transparent`}>
@@ -209,7 +209,7 @@ export function TripDayCard({
                       key={t.id}
                       className="flex items-center justify-between rounded-md bg-muted/30 p-2"
                     >
-                      <Link href={`/tournament/${t.id}`} className="flex-1 min-w-0">
+                      <Link href={`/tournament/${t.slug ?? t.id}`} className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">{formatTime(t.start_time)}</span>
                           <Badge variant="outline" className={`text-[10px] ${colors.bg} ${colors.text} border-transparent`}>

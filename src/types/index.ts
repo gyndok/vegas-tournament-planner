@@ -11,6 +11,7 @@ export interface Series {
 
 export interface Tournament {
   id: string
+  slug: string
   series_id: string
   event_number: number
   name: string

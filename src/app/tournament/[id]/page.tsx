@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
@@ -9,6 +9,12 @@ import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils
 // DB query each time. Schedules updated by the admin trigger a fresh render
 // at most an hour later.
 export const revalidate = 3600
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(value: string): boolean {
+  return UUID_RE.test(value)
+}
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Clock, DollarSign, Users, Layers, ExternalLink } from 'lucide-react'
@@ -29,11 +35,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const supabase = createAdminClient()
+  const column = isUuid(id) ? 'id' : 'slug'
   const { data: t } = await supabase
     .from('tournaments')
-    .select('name, date, start_time, buy_in, guaranteed_prize, series:series_id(name, venue)')
-    .eq('id', id)
+    .select('id, slug, name, date, start_time, buy_in, guaranteed_prize, series:series_id(name, venue)')
+    .eq(column, id)
     .maybeSingle<{
+      id: string
+      slug: string
       name: string
       date: string
       start_time: string
@@ -59,14 +68,18 @@ export async function generateMetadata({
     (seriesName ? ` Part of ${seriesName}.` : '') +
     ' Add to your NextRebuy schedule, log results, or run a Last Longer Pool with your crew.'
 
+  // Canonical always points at the slug URL, even when the request came in
+  // by UUID. The page itself redirects UUID requests, so this is mainly for
+  // any first-render scrape that beats the redirect.
+  const canonicalPath = `/tournament/${t.slug}`
   return {
     title,
     description,
-    alternates: { canonical: `/tournament/${id}` },
+    alternates: { canonical: canonicalPath },
     openGraph: {
       title,
       description,
-      url: `/tournament/${id}`,
+      url: canonicalPath,
       type: 'website',
     },
     twitter: {
@@ -88,15 +101,22 @@ export default async function TournamentDetailPage({
 }) {
   const { id } = await params
   const supabase = createAdminClient()
+  const column = isUuid(id) ? 'id' : 'slug'
 
   const { data: tournament, error } = await supabase
     .from('tournaments')
     .select('*, series:series_id(*)')
-    .eq('id', id)
+    .eq(column, id)
     .single<TournamentWithSeries>()
 
   if (error || !tournament) {
     notFound()
+  }
+
+  // Canonicalize UUID requests to the slug URL. This is a 307 redirect under
+  // Next.js's redirect() helper — fine for both browsers and search bots.
+  if (column === 'id' && tournament.slug && tournament.slug !== id) {
+    redirect(`/tournament/${tournament.slug}`)
   }
 
   const seriesName = tournament.series?.name || 'Unknown Series'
@@ -108,6 +128,7 @@ export default async function TournamentDetailPage({
       <JsonLd
         data={tournamentEventJsonLd({
           id: tournament.id,
+          slug: tournament.slug,
           name: tournament.name,
           date: tournament.date,
           start_time: tournament.start_time,

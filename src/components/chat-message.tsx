@@ -60,7 +60,7 @@ function TournamentMiniCard({ tournament }: { tournament: ChatMessageType['tourn
 
   return (
     <Link
-      href={`/tournament/${tournament.id}`}
+      href={`/tournament/${tournament.slug ?? tournament.id}`}
       className="block rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent"
     >
       <div className="flex items-center gap-2 mb-1">

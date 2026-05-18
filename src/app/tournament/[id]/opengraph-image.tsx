@@ -16,6 +16,8 @@ interface OGData {
   series: { name?: string | null; venue?: string | null } | null
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function formatDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`)
   return d.toLocaleDateString('en-US', {
@@ -45,10 +47,11 @@ export default async function Image({
 }) {
   const { id } = await params
   const svc = createAdminClient()
+  const column = UUID_RE.test(id) ? 'id' : 'slug'
   const { data } = await svc
     .from('tournaments')
     .select('name, date, start_time, buy_in, guaranteed_prize, series:series_id(name, venue)')
-    .eq('id', id)
+    .eq(column, id)
     .maybeSingle<OGData>()
 
   if (!data) {
