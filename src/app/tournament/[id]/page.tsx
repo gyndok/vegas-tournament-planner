@@ -1,8 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { formatBuyIn, formatTime, formatDate, getSeriesColor } from '@/lib/utils'
+
+// ISR: tournament data is public and changes infrequently. Cache per URL for
+// an hour so Googlebot and casual visitors hit a CDN cache instead of a fresh
+// DB query each time. Schedules updated by the admin trigger a fresh render
+// at most an hour later.
+export const revalidate = 3600
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Clock, DollarSign, Users, Layers, ExternalLink } from 'lucide-react'
@@ -22,7 +28,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: t } = await supabase
     .from('tournaments')
     .select('name, date, start_time, buy_in, guaranteed_prize, series:series_id(name, venue)')
@@ -81,7 +87,7 @@ export default async function TournamentDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: tournament, error } = await supabase
     .from('tournaments')
