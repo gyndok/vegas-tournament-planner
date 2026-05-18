@@ -90,3 +90,52 @@ export async function sendScheduleChangeEmail(
     html,
   })
 }
+
+export async function sendPoolCancelledEmail(opts: {
+  toEmails: string[]
+  poolName: string
+  reason: 'tournament_cancelled' | 'organizer_cancel'
+}) {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || opts.toEmails.length === 0) return
+  const resend = new Resend(apiKey)
+  const reasonText = opts.reason === 'tournament_cancelled'
+    ? 'The underlying tournament was cancelled.'
+    : 'The pool organizer cancelled the pool.'
+  await resend.emails.send({
+    from: 'NextRebuy <noreply@nextrebuy.com>',
+    to: opts.toEmails,
+    subject: `Last Longer Pool cancelled — ${opts.poolName}`,
+    html: `
+      <p>The pool <strong>${escapeHtml(opts.poolName)}</strong> has been cancelled.</p>
+      <p>${reasonText}</p>
+      <p>If you have any out-of-band balance with the organizer, please settle directly.</p>
+    `,
+  })
+}
+
+export async function sendPoolWinnerEmail(opts: {
+  toEmails: string[]
+  poolName: string
+  winnerDisplayName: string
+}) {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || opts.toEmails.length === 0) return
+  const resend = new Resend(apiKey)
+  await resend.emails.send({
+    from: 'NextRebuy <noreply@nextrebuy.com>',
+    to: opts.toEmails,
+    subject: `Last Longer Pool winner — ${opts.poolName}`,
+    html: `
+      <p>The pool <strong>${escapeHtml(opts.poolName)}</strong> has ended.</p>
+      <p>Winner: <strong>${escapeHtml(opts.winnerDisplayName)}</strong></p>
+      <p>Settle any out-of-band stakes directly with the pool organizer.</p>
+    `,
+  })
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
+  ))
+}

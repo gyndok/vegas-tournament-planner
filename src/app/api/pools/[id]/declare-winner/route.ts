@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { canTransition, writeAuditLog } from '@/lib/pool-utils'
+import { sendPoolWinnerEmail } from '@/lib/email'
+import { canTransition, writeAuditLog, gatherPoolMemberEmails, resolveDisplayName } from '@/lib/pool-utils'
 
 interface Body { member_id: string }
 
@@ -48,8 +49,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     pool_id: id, member_id: body.member_id, actor_id: user.id, action: 'winner_declared',
   })
 
-  // Email notification is wired up in Task 9 — leave a placeholder comment here.
-  // (After Task 9 lands, add the sendPoolWinnerEmail call.)
+  // Send winner notification email (best-effort).
+  const svc = createServiceClient()
+  const emails = await gatherPoolMemberEmails(svc, id)
+  let winnerName = 'A pool member'
+  const { data: winnerMember } = await svc
+    .from('pool_members')
+    .select('display_name, user_id')
+    .eq('id', body.member_id)
+    .single()
+  if (winnerMember) {
+    if (winnerMember.user_id) {
+      const { data: u } = await svc.auth.admin.getUserById(winnerMember.user_id)
+      winnerName = resolveDisplayName(winnerMember, u?.user ? {
+        email: u.user.email ?? null,
+        raw_user_meta_data: (u.user.user_metadata as Record<string, unknown>) ?? null,
+      } : null)
+    } else {
+      winnerName = winnerMember.display_name ?? 'Former player'
+    }
+  }
+  if (emails.length > 0) {
+    await sendPoolWinnerEmail({
+      toEmails: emails,
+      poolName: data.name,
+      winnerDisplayName: winnerName,
+    }).catch(e => console.error('[pools] winner email failed', e))
+  }
 
   return NextResponse.json(data)
 }

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { canTransition, writeAuditLog } from '@/lib/pool-utils'
+import { sendPoolCancelledEmail } from '@/lib/email'
+import { canTransition, writeAuditLog, gatherPoolMemberEmails } from '@/lib/pool-utils'
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -27,5 +28,15 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   await writeAuditLog(createServiceClient(), {
     pool_id: id, actor_id: user.id, action: 'pool_cancelled', metadata: { reason: 'organizer_cancel' },
   })
+
+  const emails = await gatherPoolMemberEmails(createServiceClient(), id)
+  if (emails.length > 0) {
+    await sendPoolCancelledEmail({
+      toEmails: emails,
+      poolName: data.name,
+      reason: 'organizer_cancel',
+    }).catch(e => console.error('[pools] cancel email failed', e))
+  }
+
   return NextResponse.json(data)
 }

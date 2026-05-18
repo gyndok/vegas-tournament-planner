@@ -93,3 +93,25 @@ const ALLOWED_TRANSITIONS: Record<PoolStatus, PoolStatus[]> = {
 export function canTransition(from: PoolStatus, to: PoolStatus): boolean {
   return ALLOWED_TRANSITIONS[from]?.includes(to) ?? false
 }
+
+/**
+ * Gather emails for all pool members via service-role admin listUsers.
+ * Skips members whose user_id is null (deleted accounts) or whose email is
+ * unverified/missing.
+ */
+export async function gatherPoolMemberEmails(
+  svc: SupabaseClient,
+  poolId: string
+): Promise<string[]> {
+  const { data: members } = await svc
+    .from('pool_members')
+    .select('user_id')
+    .eq('pool_id', poolId)
+  const userIds = (members ?? []).map(m => m.user_id).filter(Boolean) as string[]
+  if (userIds.length === 0) return []
+
+  const { data: list } = await svc.auth.admin.listUsers({ perPage: 1000 })
+  return (list?.users ?? [])
+    .filter(u => userIds.includes(u.id) && !!u.email)
+    .map(u => u.email!)
+}
