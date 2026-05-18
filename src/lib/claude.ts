@@ -4,7 +4,7 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 })
 
-export const CHAT_MODEL = 'claude-sonnet-4-20250514'
+export const CHAT_MODEL = 'claude-sonnet-4-6'
 
 export function buildSystemPrompt(currentTime: string, userPreferences?: Record<string, unknown> | null) {
   return `You are the Vegas Tournament Planner AI assistant. You help poker players find and plan tournaments across Las Vegas poker festivals.
