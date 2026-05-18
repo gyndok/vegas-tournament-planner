@@ -29,6 +29,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const userIds = (members ?? []).map(m => m.user_id).filter(Boolean) as string[]
   const userMap = new Map<string, { email: string | null; raw_user_meta_data: Record<string, unknown> | null }>()
   if (userIds.length > 0) {
+    // TODO: listUsers caps at perPage=1000 across the whole project. Above that
+    // ceiling, members on page 2+ silently fall through to the email-local-part
+    // fallback in resolveDisplayName. Replace with per-id lookups
+    // (svc.auth.admin.getUserById(id) in Promise.all over deduped userIds) or
+    // a security-definer SQL function that accepts a uuid[].
     const { data: authUsers } = await svc.auth.admin.listUsers({ perPage: 1000 })
     for (const u of authUsers?.users ?? []) {
       if (userIds.includes(u.id)) {
@@ -82,7 +87,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('id', id)
     .eq('organizer_id', user.id)              // belt-and-suspenders even with RLS
     .select()
-    .single()
+    .maybeSingle()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!data) return NextResponse.json({ error: 'Not found or not organizer' }, { status: 404 })
   return NextResponse.json(data)
