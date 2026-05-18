@@ -24,6 +24,7 @@ import {
   sendScheduleChangeEmail,
   type ScheduleChangeReport,
 } from '@/lib/email'
+import { autoCancelPoolsForTournament } from '@/lib/pool-utils'
 
 export const maxDuration = 300 // 5 minutes — needed for scraping all 6 casinos
 
@@ -113,6 +114,24 @@ export async function GET(request: NextRequest) {
     } catch (err) {
       errors.push(
         `${config.colorKey}: unexpected error — ${err instanceof Error ? err.message : 'Unknown'}`
+      )
+    }
+  }
+
+  // 2e. Auto-cancel pools attached to tournaments that disappeared from the
+  // upstream schedule. The cron's diff treats "no longer present in the
+  // scraped data" as removed; we surface that as a tournament cancellation
+  // for any Last Longer Pools tied to it. Uses the same service-role client
+  // (createAdminClient) so RLS does not block the pools/audit writes.
+  const removedTournamentIds = diffs.flatMap(d =>
+    d.removedTournaments.map(t => t.id)
+  )
+  for (const removedId of removedTournamentIds) {
+    try {
+      await autoCancelPoolsForTournament(supabase, removedId)
+    } catch (cancelErr) {
+      errors.push(
+        `auto-cancel pools for tournament ${removedId} failed — ${cancelErr instanceof Error ? cancelErr.message : 'Unknown'}`
       )
     }
   }

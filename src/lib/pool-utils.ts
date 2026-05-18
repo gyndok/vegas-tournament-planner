@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { PoolAuditAction, PoolMember, PoolStatus } from '@/types'
+import { sendPoolCancelledEmail } from '@/lib/email'
 
 /**
  * Cryptographically random invite token, 256 bits, base64url-encoded.
@@ -114,4 +115,43 @@ export async function gatherPoolMemberEmails(
   return (list?.users ?? [])
     .filter(u => userIds.includes(u.id) && !!u.email)
     .map(u => u.email!)
+}
+
+/**
+ * Cancel every non-terminal pool tied to the given tournament_id, write audit
+ * log entries, and email all members.
+ *
+ * Currently called only from src/app/api/cron/monitor-schedules/route.ts.
+ * If the cron does not produce a "cancelled tournament" signal, this will
+ * not be invoked in production. See task plan for future work.
+ */
+export async function autoCancelPoolsForTournament(svc: SupabaseClient, tournamentId: string) {
+  const { data: pools } = await svc
+    .from('pools')
+    .select('id, name, status')
+    .eq('tournament_id', tournamentId)
+    .not('status', 'in', '(ended,cancelled)')
+  for (const pool of pools ?? []) {
+    await svc.from('pools').update({
+      status: 'cancelled',
+      ended_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq('id', pool.id)
+
+    await writeAuditLog(svc, {
+      pool_id: pool.id,
+      actor_id: null,
+      action: 'pool_cancelled',
+      metadata: { reason: 'tournament_cancelled' },
+    })
+
+    const emails = await gatherPoolMemberEmails(svc, pool.id)
+    if (emails.length > 0) {
+      sendPoolCancelledEmail({
+        toEmails: emails,
+        poolName: pool.name,
+        reason: 'tournament_cancelled',
+      }).catch(e => console.error('[pools] auto-cancel email failed', e))
+    }
+  }
 }
