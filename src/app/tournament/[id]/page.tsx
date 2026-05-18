@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -11,7 +12,64 @@ import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
 import { AdUnit } from '@/components/ad-unit'
 import { LateRegBadge } from '@/components/late-reg-badge'
+import { JsonLd } from '@/components/json-ld'
+import { tournamentEventJsonLd } from '@/lib/seo'
 import { Tournament, Series } from '@/types'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: t } = await supabase
+    .from('tournaments')
+    .select('name, date, start_time, buy_in, guaranteed_prize, series:series_id(name, venue)')
+    .eq('id', id)
+    .maybeSingle<{
+      name: string
+      date: string
+      start_time: string
+      buy_in: number | null
+      guaranteed_prize: number | null
+      series: { name?: string | null; venue?: string | null } | null
+    }>()
+
+  if (!t) return { title: 'Tournament not found' }
+
+  const venue = t.series?.venue?.trim() || 'Las Vegas'
+  const seriesName = t.series?.name?.trim() || ''
+  const dateLabel = formatDate(t.date)
+  const buyInLabel = t.buy_in != null ? formatBuyIn(t.buy_in) : 'TBD'
+  const titlePieces = [t.name, venue, dateLabel].filter(Boolean)
+  const title = titlePieces.join(' · ')
+  const gtdLabel = t.guaranteed_prize
+    ? ` ${formatBuyIn(t.guaranteed_prize)} guaranteed.`
+    : ''
+  const description =
+    `${t.name} at ${venue} on ${dateLabel} at ${formatTime(t.start_time)}. ` +
+    `Buy-in ${buyInLabel}.${gtdLabel}` +
+    (seriesName ? ` Part of ${seriesName}.` : '') +
+    ' Add to your NextRebuy schedule, log results, or run a Last Longer Pool with your crew.'
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/tournament/${id}` },
+    openGraph: {
+      title,
+      description,
+      url: `/tournament/${id}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  }
+}
 
 interface TournamentWithSeries extends Omit<Tournament, 'series'> {
   series: Series | null
@@ -41,6 +99,19 @@ export default async function TournamentDetailPage({
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      <JsonLd
+        data={tournamentEventJsonLd({
+          id: tournament.id,
+          name: tournament.name,
+          date: tournament.date,
+          start_time: tournament.start_time,
+          buy_in: tournament.buy_in,
+          guaranteed_prize: tournament.guaranteed_prize,
+          series: tournament.series
+            ? { name: tournament.series.name, venue: tournament.series.venue }
+            : null,
+        })}
+      />
       {/* Back link */}
       <Link
         href="/browse"

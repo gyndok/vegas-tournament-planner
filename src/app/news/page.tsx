@@ -1,4 +1,12 @@
+import type { Metadata } from 'next'
 import { ExternalLink } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'News',
+  description:
+    'Latest Vegas poker room updates from WSOP, Wynn, Resorts World, Aria, Venetian, and more. Curated X/Twitter list with announcements, schedule changes, and overlay alerts.',
+  alternates: { canonical: '/news' },
+}
 
 const TWITTER_LIST_URL = 'https://x.com/i/lists/2027789342102450505'
 

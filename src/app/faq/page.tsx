@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import {
   Accordion,
   AccordionContent,
@@ -5,6 +6,15 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { HelpCircle } from 'lucide-react'
+import { JsonLd } from '@/components/json-ld'
+import { faqJsonLd } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'FAQ',
+  description:
+    'Answers about NextRebuy: browsing tournaments, building a schedule, custom tournaments, sharing, the trip planner and bankroll, Last Longer Pools (organizer responsibilities, money handling, multi-flight rules), and the AI Advisor.',
+  alternates: { canonical: '/faq' },
+}
 
 interface FaqItem {
   question: string
@@ -232,8 +242,10 @@ const sections: FaqSection[] = [
 ]
 
 export default function FAQPage() {
+  const allItems = sections.flatMap((s) => s.items)
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-8">
+      <JsonLd data={faqJsonLd(allItems)} />
       <div className="flex items-center gap-3">
         <HelpCircle className="size-8 text-primary" />
         <div>

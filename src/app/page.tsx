@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { LandingPage } from '@/components/landing-page'
 import { DashboardAuthenticated } from '@/components/dashboard-authenticated'
+import { JsonLd } from '@/components/json-ld'
+import { organizationJsonLd, websiteJsonLd } from '@/lib/seo'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -20,9 +22,12 @@ export default async function HomePage() {
     .select('*', { count: 'exact', head: true })
 
   return (
-    <LandingPage
-      tournamentCount={tournamentCount ?? 0}
-      seriesCount={seriesCount ?? 0}
-    />
+    <>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
+      <LandingPage
+        tournamentCount={tournamentCount ?? 0}
+        seriesCount={seriesCount ?? 0}
+      />
+    </>
   )
 }
