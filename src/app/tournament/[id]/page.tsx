@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Clock, DollarSign, Users, Layers, ExternalLink } from 'lucide-react'
 import { AddToScheduleButton } from '@/components/add-to-schedule-button'
+import { PoolCreateCta } from '@/components/pool-create-cta'
 import { FavoriteButton } from '@/components/favorite-button'
 import { SimilarTournaments } from '@/components/similar-tournaments'
 import { AdUnit } from '@/components/ad-unit'
@@ -224,7 +225,13 @@ export default async function TournamentDetailPage({
       )}
 
       {/* Add to Schedule button */}
-      <AddToScheduleButton tournamentId={tournament.id} tournamentFormat={tournament.format} />
+      <div className="flex flex-wrap items-center gap-2">
+        <AddToScheduleButton tournamentId={tournament.id} tournamentFormat={tournament.format} />
+        <PoolCreateCta
+          tournamentId={tournament.id}
+          defaultName={`${tournament.name} Last Longer`}
+        />
+      </div>
 
       {/* Contextual ad — appears between actions and similar tournaments */}
       <AdUnit slot="9431137307" size="responsive" channel="tournament_detail" />
