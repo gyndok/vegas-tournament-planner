@@ -45,10 +45,11 @@ export function useChat() {
 
       const data = await res.json()
 
-      // Handle rate limit
-      if (res.status === 429) {
-        setError(data.content || 'Too many messages. Please wait a bit and try again.')
-        // Remove the user message we optimistically added
+      // Handle rate limit (per-IP) and daily cost cap (site-wide) the same
+      // way: show the server's message as a banner, and pull the user's
+      // optimistically-added message back out so it doesn't sit unanswered.
+      if (res.status === 429 || res.status === 503) {
+        setError(data.content || 'The AI Advisor is unavailable right now. Please try again later.')
         setMessages((prev) => prev.filter((m) => m.id !== userMessage.id))
         return
       }

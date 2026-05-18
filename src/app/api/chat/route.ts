@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           content:
-            'The AI Advisor has hit its daily usage limit. It will reset overnight. In the meantime, browse tournaments directly or try again tomorrow.',
+            'The AI Advisor is paused for the rest of today — it hit its daily usage limit. Resets at midnight Pacific. You can still browse the schedule, build your trip, and run Last Longer Pools while it\'s offline.',
           tournaments: [],
         },
         { status: 503 }
