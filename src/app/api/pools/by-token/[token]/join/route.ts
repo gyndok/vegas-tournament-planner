@@ -39,17 +39,24 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ to
     return NextResponse.json({ error: insErr?.message ?? 'Join failed' }, { status: 500 })
   }
 
-  // Schedule auto-add (official tournaments only).
+  // Schedule auto-add (official tournaments only). Idempotent: skip if any row
+  // exists. The user_schedule unique key is (user_id, tournament_id, entry_number),
+  // not (user_id, tournament_id), so a plain upsert errors out.
   if (pool.pool_type === 'official' && pool.tournament_id) {
-    await svc.from('user_schedule').upsert(
-      {
+    const { data: existing } = await svc.from('user_schedule')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('tournament_id', pool.tournament_id)
+      .maybeSingle()
+    if (!existing) {
+      await svc.from('user_schedule').insert({
         user_id: user.id,
         tournament_id: pool.tournament_id,
+        entry_number: 1,
         priority: 'target',
         source: `pool:${pool.id}`,
-      },
-      { onConflict: 'user_id,tournament_id', ignoreDuplicates: true }
-    )
+      })
+    }
   }
 
   await writeAuditLog(svc, {

@@ -95,6 +95,41 @@ export async function POST(req: NextRequest) {
   }
 
   const svc = createServiceClient()
+
+  // Auto-add organizer as a member (they can leave via DELETE if they don't want to play).
+  // verified=true since they're paying themselves into their own pool (no out-of-band check needed).
+  const { error: memberErr } = await svc.from('pool_members').insert({
+    pool_id: pool.id,
+    user_id: user.id,
+    status: 'alive',
+    verified: true,
+  })
+  if (memberErr) {
+    console.error('[pools] failed to auto-add organizer as member', memberErr.message)
+    // Don't fail the create — pool exists, organizer can join via the invite link if they want to play.
+  }
+
+  // Auto-add to schedule for official pools. Idempotent: skip if any row exists
+  // (user may have added it manually before creating the pool). The
+  // user_schedule unique key is (user_id, tournament_id, entry_number), not
+  // (user_id, tournament_id), so we can't use a plain upsert.
+  if (pool.pool_type === 'official' && pool.tournament_id) {
+    const { data: existing } = await svc.from('user_schedule')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('tournament_id', pool.tournament_id)
+      .maybeSingle()
+    if (!existing) {
+      await svc.from('user_schedule').insert({
+        user_id: user.id,
+        tournament_id: pool.tournament_id,
+        entry_number: 1,
+        priority: 'target',
+        source: `pool:${pool.id}`,
+      })
+    }
+  }
+
   await writeAuditLog(svc, {
     pool_id: pool.id,
     actor_id: user.id,
