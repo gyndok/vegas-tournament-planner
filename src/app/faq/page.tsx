@@ -304,12 +304,21 @@ export default function FAQPage() {
       <p className="text-xs text-muted-foreground/70 text-center pt-2">
         Built by Geffrey Klein —{' '}
         <a
+          href="https://x.com/gyndok"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          @gyndok on X
+        </a>
+        {' · '}
+        <a
           href="https://pokerdb.thehendonmob.com/player.php?a=r&n=26705"
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-4 hover:text-foreground"
         >
-          Hendon Mob results
+          Hendon Mob
         </a>
       </p>
     </div>
