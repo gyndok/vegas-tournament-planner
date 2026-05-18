@@ -149,3 +149,68 @@ export const SERIES_COLORS: Record<string, { bg: string; text: string; label: st
   Chainsaw: { bg: 'bg-violet-100 dark:bg-violet-500/20', text: 'text-violet-700 dark:text-violet-400', label: 'Chainsaw', dot: 'bg-violet-500', border: 'border-l-violet-500' },
   default: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Other', dot: 'bg-gray-400', border: 'border-l-gray-400' },
 }
+
+// ---------------------------------------------------------------------
+// Last Longer Pools
+// ---------------------------------------------------------------------
+
+export type PoolStatus = 'draft' | 'open' | 'locked' | 'live' | 'ended' | 'cancelled'
+export type PoolType = 'official' | 'home_game'
+export type MultiFlightOutRule = 'first_flight' | 'last_flight'
+export type PoolMemberStatus = 'alive' | 'busted' | 'no_show'
+export type PoolAuditAction =
+  | 'joined' | 'verified' | 'unverified' | 'busted' | 'unbusted' | 'no_show'
+  | 'pool_locked' | 'pool_started' | 'pool_ended' | 'pool_cancelled'
+  | 'winner_declared'
+
+export interface Pool {
+  id: string
+  organizer_id: string | null
+  tournament_id: string | null
+  custom_tournament_id: string | null
+  pool_type: PoolType
+  name: string
+  status: PoolStatus
+  reentries_keep_alive: boolean
+  start_after_reentry_period: boolean
+  multiflight_out_rule: MultiFlightOutRule
+  invite_token: string
+  winner_member_id: string | null
+  ended_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PoolMember {
+  id: string
+  pool_id: string
+  user_id: string | null
+  display_name: string | null
+  verified: boolean
+  status: PoolMemberStatus
+  busted_at: string | null
+  current_chips: number | null
+  joined_at: string
+  // resolved fields (server-side joined)
+  resolved_display_name?: string
+  bust_order?: number | null
+}
+
+export interface PoolAuditEntry {
+  id: string
+  pool_id: string
+  member_id: string | null
+  actor_id: string | null
+  action: PoolAuditAction
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface PoolDetail extends Pool {
+  tournament?: Tournament | null
+  custom_tournament?: CustomTournament | null
+  members: PoolMember[]
+  alive_count: number
+  total_count: number
+  is_organizer: boolean
+}
