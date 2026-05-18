@@ -4,7 +4,7 @@ import { anthropic, CHAT_MODEL, buildSystemPrompt, TOOL_DEFINITIONS } from '@/li
 import { createClient } from '@/lib/supabase/server'
 import { buildTournamentQuery } from '@/lib/queries'
 import { Tournament } from '@/types'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkChatRateLimit } from '@/lib/rate-limit'
 
 // Cost protection constants
 const MAX_HISTORY_MESSAGES = 10 // Only send last 10 messages (5 turns) to Claude
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown'
-    const rateCheck = checkRateLimit(ip)
+    const rateCheck = checkChatRateLimit(ip)
 
     if (!rateCheck.allowed) {
       const minutes = Math.ceil(rateCheck.resetInSeconds / 60)
