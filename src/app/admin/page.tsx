@@ -20,6 +20,7 @@ import { formatDate, formatTime, formatBuyIn, getSeriesColor } from '@/lib/utils
 import type { Tournament, Series } from '@/types'
 import ImportTab from '@/components/admin/import-tab'
 import AddNewTab from '@/components/admin/add-new-tab'
+import StatsTab from '@/components/admin/stats-tab'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -479,12 +480,20 @@ export default function AdminPage() {
     <div className="px-4 md:px-6 py-6">
       <h1 className="text-2xl font-bold mb-4">Admin</h1>
 
-      <Tabs defaultValue="tournaments">
+      <Tabs defaultValue="stats">
         <TabsList>
+          <TabsTrigger value="stats">Stats</TabsTrigger>
           <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="add">Add New</TabsTrigger>
         </TabsList>
+
+        {/* ============================================================ */}
+        {/* STATS TAB                                                    */}
+        {/* ============================================================ */}
+        <TabsContent value="stats">
+          <StatsTab />
+        </TabsContent>
 
         {/* ============================================================ */}
         {/* TOURNAMENTS TAB                                              */}
