@@ -20,6 +20,7 @@ import {
   MapPin,
   ArrowRight,
   Settings,
+  Trophy,
 } from 'lucide-react'
 import { formatDate, formatTime, formatBuyIn, getSeriesColor } from '@/lib/utils'
 
@@ -250,7 +251,7 @@ export function DashboardAuthenticated() {
       <FeaturedSeriesGrid />
 
       {/* 7. Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Link
           href="/browse"
           className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent group"
@@ -261,6 +262,20 @@ export function DashboardAuthenticated() {
           <div>
             <div className="text-sm font-semibold">Browse</div>
             <div className="text-xs text-muted-foreground">Find tournaments</div>
+          </div>
+          <ArrowRight className="size-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+
+        <Link
+          href="/pools"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent group"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Trophy className="size-5 text-muted-foreground" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">My Pools</div>
+            <div className="text-xs text-muted-foreground">Last-longer pools</div>
           </div>
           <ArrowRight className="size-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
         </Link>
