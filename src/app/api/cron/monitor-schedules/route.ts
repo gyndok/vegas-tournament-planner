@@ -24,7 +24,7 @@ import {
   sendScheduleChangeEmail,
   type ScheduleChangeReport,
 } from '@/lib/email'
-import { autoCancelPoolsForTournament } from '@/lib/pool-utils'
+import { processPoolStrikes } from '@/lib/pool-utils'
 
 export const maxDuration = 300 // 5 minutes — needed for scraping all 6 casinos
 
@@ -111,27 +111,38 @@ export async function GET(request: NextRequest) {
       // 2d. Diff
       const diff = diffTournaments(normalized, existing, config.colorKey)
       diffs.push(diff)
+
+      // 2e. Process pool strikes for this casino. Bump the cancel-strike
+      // counter on pools whose tournament went missing this run; reset to
+      // zero on pools whose tournament reappeared. Only pools that hit the
+      // consecutive-misses threshold get cancelled, which absorbs transient
+      // scrape failures. We do this per casino (not aggregated post-loop)
+      // so a casino that fails to scrape leaves its pools untouched.
+      const removedIdSet = new Set(diff.removedTournaments.map(t => t.id))
+      const missingIds = Array.from(removedIdSet)
+      const presentIds = existing
+        .filter(e => !removedIdSet.has(e.id))
+        .map(e => e.id)
+      if (missingIds.length > 0 || presentIds.length > 0) {
+        try {
+          const result = await processPoolStrikes(supabase, {
+            presentTournamentIds: presentIds,
+            missingTournamentIds: missingIds,
+          })
+          if (result.cancelled.length > 0) {
+            errors.push(
+              `${config.colorKey}: cancelled ${result.cancelled.length} pool(s) after consecutive misses`
+            )
+          }
+        } catch (strikeErr) {
+          errors.push(
+            `${config.colorKey}: pool-strike processing failed — ${strikeErr instanceof Error ? strikeErr.message : 'Unknown'}`
+          )
+        }
+      }
     } catch (err) {
       errors.push(
         `${config.colorKey}: unexpected error — ${err instanceof Error ? err.message : 'Unknown'}`
-      )
-    }
-  }
-
-  // 2e. Auto-cancel pools attached to tournaments that disappeared from the
-  // upstream schedule. The cron's diff treats "no longer present in the
-  // scraped data" as removed; we surface that as a tournament cancellation
-  // for any Last Longer Pools tied to it. Uses the same service-role client
-  // (createAdminClient) so RLS does not block the pools/audit writes.
-  const removedTournamentIds = diffs.flatMap(d =>
-    d.removedTournaments.map(t => t.id)
-  )
-  for (const removedId of removedTournamentIds) {
-    try {
-      await autoCancelPoolsForTournament(supabase, removedId)
-    } catch (cancelErr) {
-      errors.push(
-        `auto-cancel pools for tournament ${removedId} failed — ${cancelErr instanceof Error ? cancelErr.message : 'Unknown'}`
       )
     }
   }

@@ -118,40 +118,136 @@ export async function gatherPoolMemberEmails(
 }
 
 /**
+ * Cancel a single pool by id: flip status, write audit log, email members.
+ * Used by both the strike-based cron path and the all-pools-for-a-tournament
+ * helper below.
+ */
+export async function cancelPool(
+  svc: SupabaseClient,
+  poolId: string,
+  reason: 'tournament_cancelled' | 'organizer_cancel'
+): Promise<void> {
+  const { data } = await svc
+    .from('pools')
+    .update({
+      status: 'cancelled',
+      ended_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', poolId)
+    .select('name')
+    .single()
+  if (!data) return
+
+  await writeAuditLog(svc, {
+    pool_id: poolId,
+    actor_id: null,
+    action: 'pool_cancelled',
+    metadata: { reason },
+  })
+
+  const emails = await gatherPoolMemberEmails(svc, poolId)
+  if (emails.length > 0) {
+    sendPoolCancelledEmail({
+      toEmails: emails,
+      poolName: data.name,
+      reason,
+    }).catch(e => console.error('[pools] cancel email failed', e))
+  }
+}
+
+/**
  * Cancel every non-terminal pool tied to the given tournament_id, write audit
- * log entries, and email all members.
- *
- * Currently called only from src/app/api/cron/monitor-schedules/route.ts.
- * If the cron does not produce a "cancelled tournament" signal, this will
- * not be invoked in production. See task plan for future work.
+ * log entries, and email all members. Use only when the tournament is
+ * definitively cancelled (e.g., from an admin signal) — for "missing from
+ * scrape" use processPoolStrikes instead, which gates on consecutive misses.
  */
 export async function autoCancelPoolsForTournament(svc: SupabaseClient, tournamentId: string) {
   const { data: pools } = await svc
     .from('pools')
-    .select('id, name, status')
+    .select('id, status')
     .eq('tournament_id', tournamentId)
     .not('status', 'in', '(ended,cancelled)')
   for (const pool of pools ?? []) {
-    await svc.from('pools').update({
-      status: 'cancelled',
-      ended_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq('id', pool.id)
+    await cancelPool(svc, pool.id, 'tournament_cancelled')
+  }
+}
 
-    await writeAuditLog(svc, {
-      pool_id: pool.id,
-      actor_id: null,
-      action: 'pool_cancelled',
-      metadata: { reason: 'tournament_cancelled' },
-    })
+/**
+ * Pool auto-cancel threshold: number of consecutive scrape runs a tournament
+ * must be missing before its pools get cancelled. Anything below this is
+ * absorbed as transient noise (a single bad scrape, parser regression, casino
+ * temporarily removed the listing).
+ */
+export const POOL_CANCEL_STRIKE_THRESHOLD = 3
 
-    const emails = await gatherPoolMemberEmails(svc, pool.id)
-    if (emails.length > 0) {
-      sendPoolCancelledEmail({
-        toEmails: emails,
-        poolName: pool.name,
-        reason: 'tournament_cancelled',
-      }).catch(e => console.error('[pools] auto-cancel email failed', e))
+/**
+ * Per-cron-run pool strike processing. Bumps cancel_strikes for pools whose
+ * tournament is missing from this run, resets to 0 for pools whose tournament
+ * is back. Cancels (with audit + email) any pool whose strikes reach the
+ * threshold after bumping. The reset side ensures only *consecutive* misses
+ * count, so an intermittent miss followed by a re-appearance won't push a pool
+ * any closer to cancellation.
+ *
+ * presentTournamentIds and missingTournamentIds should be disjoint within a
+ * single call. Callers should only pass IDs for casinos whose scrape actually
+ * succeeded this run — pools whose tournament wasn't scraped at all are
+ * untouched.
+ *
+ * Returns the list of pool IDs that hit the threshold and were cancelled in
+ * this run (zero in the typical case).
+ */
+export async function processPoolStrikes(
+  svc: SupabaseClient,
+  args: {
+    presentTournamentIds: string[]
+    missingTournamentIds: string[]
+    threshold?: number
+  }
+): Promise<{ bumped: string[]; reset: string[]; cancelled: string[] }> {
+  const threshold = args.threshold ?? POOL_CANCEL_STRIKE_THRESHOLD
+  const bumped: string[] = []
+  const reset: string[] = []
+  const cancelled: string[] = []
+
+  // Reset strikes for pools whose tournament reappeared.
+  if (args.presentTournamentIds.length > 0) {
+    const { data } = await svc
+      .from('pools')
+      .update({ cancel_strikes: 0, last_missing_at: null })
+      .in('tournament_id', args.presentTournamentIds)
+      .gt('cancel_strikes', 0)
+      .not('status', 'in', '(ended,cancelled)')
+      .select('id')
+    for (const row of data ?? []) reset.push(row.id)
+  }
+
+  // Bump strikes for pools whose tournament went missing. We have to read the
+  // current count, write the new count — supabase-js doesn't expose atomic
+  // column increment without an RPC, and cron runs are serialized so the race
+  // is benign.
+  if (args.missingTournamentIds.length > 0) {
+    const { data: affected } = await svc
+      .from('pools')
+      .select('id, tournament_id, cancel_strikes')
+      .in('tournament_id', args.missingTournamentIds)
+      .not('status', 'in', '(ended,cancelled)')
+
+    const nowIso = new Date().toISOString()
+    for (const pool of affected ?? []) {
+      const next = (pool.cancel_strikes ?? 0) + 1
+      if (next >= threshold) {
+        await cancelPool(svc, pool.id, 'tournament_cancelled')
+        cancelled.push(pool.id)
+      } else {
+        await svc
+          .from('pools')
+          .update({ cancel_strikes: next, last_missing_at: nowIso })
+          .eq('id', pool.id)
+        bumped.push(pool.id)
+      }
     }
   }
+
+  return { bumped, reset, cancelled }
 }
