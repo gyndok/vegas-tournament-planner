@@ -10,6 +10,11 @@ import {
   MessageSquare,
   Zap,
   ArrowRight,
+  Trophy,
+  Users,
+  Link as LinkIcon,
+  DollarSign,
+  Sparkles,
 } from 'lucide-react'
 
 interface LandingPageProps {
@@ -42,6 +47,12 @@ const features = [
     description:
       'Get personalized recommendations on which events fit your bankroll and play style.',
   },
+  {
+    icon: Trophy,
+    title: 'Last Longer Pools',
+    description:
+      'Run side bets with your crew. We keep the live leaderboard — money stays between you.',
+  },
 ]
 
 const steps = [
@@ -61,7 +72,8 @@ export function LandingPage({ tournamentCount, seriesCount }: LandingPageProps) 
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
           Browse WSOP, Wynn, Venetian, and every major series in one place.
-          Build your schedule, track your results, and hit the felt prepared.
+          Build your schedule, track results, and run Last Longer Pools with
+          your crew — all free.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">
@@ -91,6 +103,112 @@ export function LandingPage({ tournamentCount, seriesCount }: LandingPageProps) 
 
       {/* ── Featured Summer Series ── */}
       <FeaturedSeriesGrid />
+
+      {/* ── Last Longer Pools promo ── */}
+      <section>
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card overflow-hidden">
+          <CardContent className="grid md:grid-cols-2 gap-8 p-6 md:p-8 items-center">
+            <div className="space-y-5">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                <Sparkles className="size-3.5" />
+                New
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Last Longer Pools
+              </h2>
+              <p className="text-muted-foreground">
+                Side bets with your crew, organized in one place. Create a pool
+                for any tournament, share an invite link, and we&apos;ll keep
+                the live leaderboard updated as players bust out. NextRebuy
+                never touches money — the organizer collects buy-ins and pays
+                out the winner outside the app.
+              </p>
+              <ul className="space-y-2.5 text-sm">
+                <li className="flex items-start gap-2.5">
+                  <LinkIcon className="size-4 mt-0.5 shrink-0 text-primary" />
+                  <span>Invite by link — joiners click, sign in, and they&apos;re in</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Users className="size-4 mt-0.5 shrink-0 text-primary" />
+                  <span>Live leaderboard with chip counts and bust order, private to your group</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <DollarSign className="size-4 mt-0.5 shrink-0 text-primary" />
+                  <span>Zero money handling — organizer settles buy-ins and payouts off-platform</span>
+                </li>
+              </ul>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <Button asChild>
+                  <Link href="/login">
+                    Sign in to create
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/faq#last-longer-pools">How it works</Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Mock leaderboard preview */}
+            <div className="hidden md:block">
+              <div className="rounded-xl border border-border bg-background/80 backdrop-blur p-5 shadow-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <div>
+                    <p className="text-sm font-semibold">Crew @ Aria $1k</p>
+                    <p className="text-xs text-muted-foreground">4 of 6 alive · Day 1</p>
+                  </div>
+                  <Trophy className="size-4 text-primary" />
+                </div>
+                <ul className="mt-3 space-y-2 text-sm">
+                  <li className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-4">1</span>
+                      <span>Alice</span>
+                    </span>
+                    <span className="font-mono text-xs">145,000</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-4">2</span>
+                      <span>Bob</span>
+                    </span>
+                    <span className="font-mono text-xs">98,500</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-4">3</span>
+                      <span>Carol</span>
+                    </span>
+                    <span className="font-mono text-xs">42,000</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-4">4</span>
+                      <span>You</span>
+                    </span>
+                    <span className="font-mono text-xs">22,500</span>
+                  </li>
+                  <li className="flex items-center justify-between text-muted-foreground line-through">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs w-4">—</span>
+                      <span>Eve</span>
+                    </span>
+                    <span className="text-xs">out #2</span>
+                  </li>
+                  <li className="flex items-center justify-between text-muted-foreground line-through">
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs w-4">—</span>
+                      <span>Frank</span>
+                    </span>
+                    <span className="text-xs">out #1</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* ── Feature Cards ── */}
       <section className="space-y-8">
