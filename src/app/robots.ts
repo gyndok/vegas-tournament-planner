@@ -18,7 +18,8 @@ export default function robots(): MetadataRoute.Robots {
           '/pro',
           '/pools',
           '/feedback',
-          '/shared',
+          // /shared is intentionally crawlable so X/Discord/etc. can fetch
+          // the OG card; the page itself sets robots: noindex, follow=false.
         ],
       },
     ],

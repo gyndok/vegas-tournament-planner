@@ -16,6 +16,7 @@ export const revalidate = 3600 // 1 hour
 const staticRoutes: MetadataRoute.Sitemap = [
   { url: '/', changeFrequency: 'daily', priority: 1.0 },
   { url: '/browse', changeFrequency: 'daily', priority: 0.9 },
+  { url: '/guides/wsop-2026', changeFrequency: 'daily', priority: 0.95 },
   { url: '/faq', changeFrequency: 'monthly', priority: 0.6 },
   { url: '/news', changeFrequency: 'weekly', priority: 0.5 },
   { url: '/login', changeFrequency: 'yearly', priority: 0.3 },

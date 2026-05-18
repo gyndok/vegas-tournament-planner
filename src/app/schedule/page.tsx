@@ -11,7 +11,7 @@ import { TournamentCard } from '@/components/tournament-card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus, Info } from 'lucide-react'
+import { LogIn, Download, CalendarDays, Heart, Share2, Copy, Check, RefreshCw, Plus, Info, Image as ImageIcon } from 'lucide-react'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { Tournament, CustomTournament, UserScheduleEntry } from '@/types'
 
@@ -220,17 +220,43 @@ export default function SchedulePage() {
             <Switch checked={shareEnabled} onCheckedChange={handleShareToggle} />
           </div>
           {shareEnabled && shareToken && (
-            <div className="flex items-center gap-2 mt-2">
-              <code className="text-xs bg-muted px-2 py-1 rounded truncate block flex-1">
-                {shareOrigin}/shared/{shareToken}
-              </code>
-              <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2" onClick={handleCopyLink}>
-                {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
-              </Button>
-              <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2 text-muted-foreground" onClick={handleRegenerateLink} title="Generate new link">
-                <RefreshCw className="size-3.5" />
-              </Button>
-            </div>
+            <>
+              <div className="flex items-center gap-2 mt-2">
+                <code className="text-xs bg-muted px-2 py-1 rounded truncate block flex-1">
+                  {shareOrigin}/shared/{shareToken}
+                </code>
+                <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2" onClick={handleCopyLink}>
+                  {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+                </Button>
+                <Button variant="ghost" size="sm" className="shrink-0 h-7 px-2 text-muted-foreground" onClick={handleRegenerateLink} title="Generate new link">
+                  <RefreshCw className="size-3.5" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                  <a
+                    href={`https://x.com/intent/post?text=${encodeURIComponent(
+                      'My 2026 Vegas poker schedule, planned with NextRebuy 👇'
+                    )}&url=${encodeURIComponent(`${shareOrigin}/shared/${shareToken}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Share2 className="size-3.5" />
+                    Post on X
+                  </a>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" title="Open the schedule image (right-click to save)">
+                  <a
+                    href={`${shareOrigin}/shared/${shareToken}/opengraph-image`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ImageIcon className="size-3.5" />
+                    Schedule image
+                  </a>
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </div>

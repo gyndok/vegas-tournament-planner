@@ -1,9 +1,36 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/service'
 import { SharedScheduleView } from '@/components/shared-schedule-view'
 
 interface SharedPageProps {
   params: Promise<{ token: string }>
+}
+
+export async function generateMetadata({ params }: SharedPageProps): Promise<Metadata> {
+  const { token } = await params
+  // Shared pages are noindex (they leak user-tied data) but we want X/Discord
+  // to crawl for the OG card. Setting robots noindex but keeping the OG image
+  // gets us the best of both.
+  return {
+    title: 'A Vegas poker schedule',
+    description:
+      "Someone's planned Vegas tournament schedule, shared via NextRebuy. Build your own free at nextrebuy.com.",
+    robots: { index: false, follow: false },
+    alternates: { canonical: `/shared/${token}` },
+    openGraph: {
+      title: 'A Vegas poker schedule',
+      description:
+        'A planned Vegas tournament schedule, shared via NextRebuy. Build your own free.',
+      url: `/shared/${token}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'A Vegas poker schedule',
+      description: 'A planned Vegas tournament schedule, shared via NextRebuy.',
+    },
+  }
 }
 
 export default async function SharedSchedulePage({ params }: SharedPageProps) {
